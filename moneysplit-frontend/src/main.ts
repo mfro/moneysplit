@@ -1,5 +1,81 @@
 import { createApp } from 'vue'
+import PrimeVue from 'primevue/config';
+import Aura from '@primeuix/themes/aura';
+
 import App from './App.vue'
 import './style.scss'
+import { definePreset } from '@primeuix/themes';
 
-createApp(App).mount('#app')
+const Noir = definePreset(Aura, {
+    semantic: {
+        primary: {
+            50: '{slate.50}',
+            100: '{slate.100}',
+            200: '{slate.200}',
+            300: '{slate.300}',
+            400: '{slate.400}',
+            500: '{slate.500}',
+            600: '{slate.600}',
+            700: '{slate.700}',
+            800: '{slate.800}',
+            900: '{slate.900}',
+            950: '{slate.950}'
+        },
+        colorScheme: {
+            light: {
+                primary: {
+                    color: '{slate.950}',
+                    inverseColor: '#ffffff',
+                    hoverColor: '{slate.900}',
+                    activeColor: '{slate.800}'
+                },
+                highlight: {
+                    background: '{slate.950}',
+                    focusBackground: '{slate.700}',
+                    color: '#ffffff',
+                    focusColor: '#ffffff'
+                }
+            },
+            dark: {
+                primary: {
+                    color: '{slate.50}',
+                    inverseColor: '{slate.950}',
+                    hoverColor: '{slate.100}',
+                    activeColor: '{slate.200}'
+                },
+                highlight: {
+                    background: 'rgba(250, 250, 250, .16)',
+                    focusBackground: 'rgba(250, 250, 250, .24)',
+                    color: 'rgba(255,255,255,.87)',
+                    focusColor: 'rgba(255,255,255,.87)'
+                }
+            }
+        }
+    }
+});
+
+// const Theme = definePreset(Aura, {
+//   semantic: {
+//     primary: {
+//       50: '{black.50}',
+//       100: '{black.100}',
+//       200: '{black.200}',
+//       300: '{black.300}',
+//       400: '{black.400}',
+//       500: '{black.500}',
+//       600: '{black.600}',
+//       700: '{black.700}',
+//       800: '{black.800}',
+//       900: '{black.900}',
+//       950: '{black.950}'
+//     }
+//   }
+// });
+
+const app = createApp(App);
+app.use(PrimeVue, {
+  theme: {
+    preset: Noir,
+  }
+});
+app.mount('#app')

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Driver } from '../driver';
+import { type Driver } from '../driver';
 import Flex from '../ui/Flex.vue';
 import { ADD_TRANSACTION, REMOVE_TRANSACTION, type Group, type Transaction, type Person, ADD_PERSON } from '../../../moneysplit-common';
+import { Button, Card, Dialog, InputNumber, InputText } from 'primevue';
 
 const props = defineProps<{
   driver: Driver;
@@ -10,13 +11,13 @@ const props = defineProps<{
 }>();
 
 const showForm = ref(false);
-const cost = ref('');
+const cost = ref(0);
 const participants = ref<{ person: Person; ratio: number }[]>([]);
 
 const availablePeople = computed(() => props.group.people);
 
 function openForm() {
-  cost.value = '';
+  cost.value = 0;
   participants.value = props.group.people.map(p => ({ person: p, ratio: 1 }));
   showForm.value = true;
 }
@@ -68,7 +69,7 @@ function addPerson() {
 }
 
 function addTransaction() {
-  const amount = parseFloat(cost.value);
+  const amount = cost.value;
   if (isNaN(amount) || amount <= 0 || participants.value.length === 0) return;
 
   const transaction: Transaction = {
@@ -106,123 +107,86 @@ function splitSummary(transaction: Transaction) {
 </script>
 
 <template>
-  <div class="card">
-    <Flex row align-center justify-space-between class="mb-4">
-      <h3 class="panel-title">Transactions</h3>
-      <Flex row align-center class="gap-2">
-        <span class="count">{{ group.transactions.length }}</span>
-        <button class="btn btn-primary btn-sm" @click="openForm"
-                v-if="!showForm" id="add-transaction-btn">
-          + Add
+  <Card class="minimal-card">
+    <template #title>
+      <Flex row align-center justify-space-between class="mb-4">
+        <span>Transactions</span>
+
+        <Flex row align-center class="gap-2">
+          <Button icon="yes" rounded variant="text" size="small"
+                  @click="openForm">
+            <span class="material-symbols-outlined">add</span>
+          </Button>
+        </Flex>
+      </Flex>
+    </template>
+
+    <template #content>
+      <!-- Transaction list -->
+      <Flex column class="gap-1" v-if="group.transactions.length">
+        <Flex row align-center justify-space-between
+              class="gap-3 transaction-item"
+              v-for="(tx, i) in group.transactions" :key="i">
+          <Flex column class="transaction-info">
+            <span class="transaction-cost">{{ formatCost(tx.cost) }}</span>
+            <span class="transaction-split">{{ splitSummary(tx) }}</span>
+          </Flex>
+
+          <Button icon="yes" rounded variant="text" size="small"
+                  severity="danger" @click="removeTransaction(i)">
+            <span class="material-symbols-outlined">delete</span>
+          </Button>
+        </Flex>
+      </Flex>
+
+      <p v-else-if="!showForm" class="empty-state py-4">No transactions yet.</p>
+    </template>
+  </Card>
+
+  <Dialog v-model:visible="showForm" modal header="Add Transaction">
+    <Flex column class="gap-2">
+      <Flex align-baseline>
+        <label for="price_input" class="mx-2 mb-2">Total</label>
+        <Flex grow />
+        <InputNumber v-model="cost" inputId="price_input" fluid
+                     style="width: 10ch" />
+      </Flex>
+
+      <Flex column class="gap-1" v-if="availablePeople.length">
+        <Flex row align-center justify-space-between class="gap-2"
+              v-for="(person, i) in availablePeople" :key="i">
+          <label class="participant-toggle pa-3">
+            <input type="checkbox" :checked="isParticipant(person)"
+                   @change="toggleParticipant(person)" />
+
+            <span>{{ person.name }}</span>
+          </label>
+
+          <InputNumber :model-value="getParticipant(person)?.ratio ?? 0"
+                       @input="e => getParticipant(person)!.ratio = (e.value as number)"
+                       :disabled="!isParticipant(person)" fluid
+                       style="width: 8ch" />
+        </Flex>
+      </Flex>
+
+      <Flex row class="gap-2" :is="'form'" @submit.prevent="addPerson">
+        <InputText v-model="newPersonName" placeholder="Add a new group member"
+                   id="add-tx-person-input" />
+        <Button @click="addPerson" size="small" :disabled="!newPersonName">
+          <span class="material-symbols-outlined">add</span>
         </button>
       </Flex>
-    </Flex>
 
-    <!-- Add transaction form -->
-    <Flex column class="gap-3 transaction-form mb-4" v-if="showForm">
-      <Flex column class="gap-1">
-        <label class="form-label">Amount</label>
-        <input
-               v-model="cost"
-               class="input"
-               type="number"
-               step="0.01"
-               min="0"
-               placeholder="0.00"
-               id="transaction-cost-input" />
-      </Flex>
+      <Flex row class="gap-2 mt-4">
+        <Flex grow />
 
-      <Flex column class="gap-1">
-        <label class="form-label">Split among</label>
-
-        <Flex column class="gap-1" v-if="availablePeople.length">
-          <Flex row align-center justify-space-between class="gap-2 py-1"
-                v-for="(person, i) in availablePeople" :key="i">
-            <label class="participant-toggle">
-              <input
-                     type="checkbox"
-                     :checked="isParticipant(person)"
-                     @change="toggleParticipant(person)" />
-              <span>{{ person.name }}</span>
-            </label>
-            <input
-                   v-if="isParticipant(person)"
-                   :value="getParticipant(person)!.ratio"
-                   @input="getParticipant(person)!.ratio = parseFloat(($event.target as HTMLInputElement).value) || 1"
-                   class="input ratio-input"
-                   type="number"
-                   min="1"
-                   step="1"
-                   placeholder="1" />
-          </Flex>
-        </Flex>
-
-        <!-- New people that have been added locally during this transaction -->
-        <Flex column class="gap-1"
-              v-if="participants.filter(p => !availablePeople.some(ap => ap.name === p.person.name)).length">
-          <Flex row align-center justify-space-between class="gap-2 py-1"
-                v-for="(p, i) in participants.filter(p => !availablePeople.some(ap => ap.name === p.person.name))"
-                :key="'new-' + i">
-            <label class="participant-toggle">
-              <input
-                     type="checkbox"
-                     checked
-                     @change="toggleParticipant(p.person)" />
-              <span>{{ p.person.name }}</span>
-            </label>
-            <input
-                   :value="p.ratio"
-                   @input="p.ratio = parseFloat(($event.target as HTMLInputElement).value) || 1"
-                   class="input ratio-input"
-                   type="number"
-                   min="1"
-                   step="1"
-                   placeholder="1" />
-          </Flex>
-        </Flex>
-
-        <Flex row class="gap-2 mt-2" :is="'form'" @submit.prevent="addPerson">
-          <input
-                 v-model="newPersonName"
-                 class="input"
-                 placeholder="Type a name to add someone"
-                 id="add-tx-person-input" />
-          <button type="submit" class="btn btn-primary btn-sm"
-                  id="add-tx-person-btn"
-                  @click="addPerson">Add</button>
-        </Flex>
-      </Flex>
-
-      <Flex row class="gap-2">
-        <button class="btn btn-primary" @click="addTransaction"
-                id="submit-transaction-btn"
-                :disabled="!cost || participants.length === 0">Add
-          Transaction</button>
-        <button class="btn btn-ghost" @click="closeForm"
-                id="cancel-transaction-btn">Cancel</button>
+        <Button @click="addTransaction"
+                :disabled="!cost || participants.length === 0">
+          Save Transaction
+        </Button>
       </Flex>
     </Flex>
-
-    <!-- Transaction list -->
-    <Flex column class="gap-1" v-if="group.transactions.length">
-      <Flex row align-center justify-space-between
-            class="gap-3 transaction-item"
-            v-for="(tx, i) in group.transactions" :key="i">
-        <Flex column class="transaction-info">
-          <span class="transaction-cost">{{ formatCost(tx.cost) }}</span>
-          <span class="transaction-split">{{ splitSummary(tx) }}</span>
-        </Flex>
-        <button
-                class="btn btn-danger btn-sm tx-remove"
-                @click="removeTransaction(i)"
-                :id="`remove-tx-${i}`">
-          Remove
-        </button>
-      </Flex>
-    </Flex>
-
-    <p v-else-if="!showForm" class="empty-state py-4">No transactions yet.</p>
-  </div>
+  </Dialog>
 </template>
 
 <style scoped lang="scss">
@@ -283,22 +247,7 @@ function splitSummary(transaction: Transaction) {
 
 .transaction-item {
   padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition);
-
-  &:hover {
-    background: var(--bg-hover);
-  }
-
-  .tx-remove {
-    opacity: 0;
-    flex-shrink: 0;
-    transition: opacity var(--transition);
-  }
-
-  &:hover .tx-remove {
-    opacity: 1;
-  }
+  margin: 0 -12px;
 }
 
 .transaction-info {

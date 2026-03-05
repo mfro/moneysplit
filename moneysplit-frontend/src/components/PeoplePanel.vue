@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Driver } from '../driver';
+import { type Driver } from '../driver';
 import Flex from '../ui/Flex.vue';
 import { REMOVE_PERSON, type Group } from '../../../moneysplit-common';
+import { Badge, Card } from 'primevue';
 
 const props = defineProps<{
   driver: Driver;
@@ -15,28 +16,32 @@ function removePerson(index: number) {
 </script>
 
 <template>
-  <div class="card">
-    <Flex row align-center justify-space-between class="mb-4">
-      <h3 class="panel-title">People</h3>
-      <span class="count">{{ group.people.length }}</span>
-    </Flex>
+  <Card class="minimal-card">
+    <template #title>
+      <Flex row align-center justify-space-between>
+        <span>People</span>
 
-
-    <Flex column class="gap-1" v-if="group.people.length">
-      <Flex row align-center class="gap-2 person-item"
-            v-for="(person, i) in group.people" :key="i">
-        <span class="person-name">{{ person.name }}</span>
-        <button
-                class="btn btn-danger btn-sm person-remove"
-                @click="removePerson(i)"
-                :id="`remove-person-${i}`">
-          Remove
-        </button>
+        <Badge :value="group.people.length" />
       </Flex>
-    </Flex>
+    </template>
 
-    <p v-else class="empty-state py-4">No people added yet.</p>
-  </div>
+    <template #content>
+      <Flex column class="gap-1" v-if="group.people.length">
+        <Flex row align-center class="gap-2 pa-2"
+              v-for="(person, i) in group.people" :key="i">
+          <span class="person-name">{{ person.name }}</span>
+
+          <Flex grow />
+
+          <!-- <Button icon="yes" rounded variant="text" size="small"
+                  severity="danger" @click="removePerson(i)">
+            <span class="material-symbols-outlined">delete</span>
+          </Button> -->
+        </Flex>
+      </Flex>
+      <p v-else class="empty-state py-4">No people added yet.</p>
+    </template>
+  </Card>
 </template>
 
 <style scoped lang="scss">
@@ -52,26 +57,6 @@ function removePerson(index: number) {
   border-radius: 10px;
   font-size: 0.8rem;
   font-weight: 600;
-}
-
-.person-item {
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition);
-
-  &:hover {
-    background: var(--bg-hover);
-  }
-
-  .person-remove {
-    margin-left: auto;
-    opacity: 0;
-    transition: opacity var(--transition);
-  }
-
-  &:hover .person-remove {
-    opacity: 1;
-  }
 }
 
 .person-name {

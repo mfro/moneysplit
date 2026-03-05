@@ -1,5 +1,6 @@
-import { reactive } from 'vue';
+import { reactive, watchEffect } from 'vue';
 import { assert, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { putKnownGroup } from './localStorage';
 
 export interface State {
   isConnecting: boolean;
@@ -9,13 +10,21 @@ export interface State {
   data: Group | null;
 }
 
-export class Driver {
+export interface Driver {
+  readonly state: State;
+
+  apply<A extends unknown[]>(op: Operation<A>, ...args: A): void;
+  close(): void;
+}
+
+export class WebSocketDriver implements Driver {
   constructor(
     readonly state: State,
     readonly ws: WebSocket,
   ) {
     ws.addEventListener('close', () => {
-      location.reload();
+      state.isConnected = false;
+      state.isConnecting = false;
     });
 
     ws.addEventListener('error', (e) => {
@@ -40,10 +49,16 @@ export class Driver {
         message.op.impl(state.data, ...message.args);
       }
     });
+
+    watchEffect(() => {
+      if (this.state.token && this.state.data) {
+        putKnownGroup(this.state.token, this.state.data.name);
+      }
+    });
   }
 
   static connect(path: string) {
-    const url = new URL(path, 'ws://localhost:8080');
+    const url = new URL(path, 'ws://192.168.0.5:8080');
 
     const ws = new WebSocket(url);
 
@@ -55,7 +70,7 @@ export class Driver {
       data: null,
     });
 
-    return new Driver(state, ws);
+    return new WebSocketDriver(state, ws);
   }
 
   apply<A extends unknown[]>(op: Operation<A>, ...args: A) {
@@ -66,5 +81,36 @@ export class Driver {
     };
 
     this.ws.send(JSON.stringify(serialize(message)));
+  }
+
+  close() {
+    this.ws.close();
+    this.state.isConnected = false;
+    this.state.data = null;
+    this.state.token = null;
+  }
+}
+
+export class OfflineDriver implements Driver {
+  state: State;
+
+  constructor() {
+    this.state = reactive({
+      data: {
+        name: 'Offline group',
+        people: [],
+        transactions: [],
+      },
+      token: 'offline',
+      isConnected: true,
+      isConnecting: false,
+    })
+  }
+
+  apply<A extends unknown[]>(op: Operation<A>, ...args: A): void {
+    op.impl(this.state.data!, ...args);
+  }
+
+  close(): void {
   }
 }

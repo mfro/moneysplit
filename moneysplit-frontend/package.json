@@ -11,6 +11,9 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@material-symbols/font-400": "^0.40.2",
+    "@primeuix/themes": "^2.0.3",
+    "primevue": "^4.5.4",
     "vue": "^3.5.29"
   },
   "devDependencies": {

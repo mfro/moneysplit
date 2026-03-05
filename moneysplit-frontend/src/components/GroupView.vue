@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
-import { Driver } from '../driver';
+import { type Driver } from '../driver';
 import { RENAME_GROUP } from '../../../moneysplit-common';
 import Flex from '../ui/Flex.vue';
 import PeoplePanel from './PeoplePanel.vue';
 import TransactionPanel from './TransactionPanel.vue';
-import SettlementSummary from './SettlementSummary.vue';
+import { Button, InputText } from 'primevue';
 
 const props = defineProps<{
   driver: Driver;
+}>();
+
+const emit = defineEmits<{
+  close: [];
 }>();
 
 const group = computed(() => props.driver.state.data);
@@ -16,9 +20,15 @@ const group = computed(() => props.driver.state.data);
 const isEditingName = ref(false);
 const editName = ref('');
 
+function close() {
+  emit('close');
+}
+
 function startEditName() {
   editName.value = group.value?.name ?? '';
   isEditingName.value = true;
+
+  document.getElementById('group-name-edit-input')?.focus();
 }
 
 function saveName() {
@@ -44,27 +54,36 @@ watchEffect(() => {
 </script>
 
 <template>
-  <Flex column grow class="group-view" v-if="group">
+  <Flex column grow class="py-5 group-view" v-if="group">
     <header class="mb-5">
-      <Flex row align-center class="gap-2" v-if="!isEditingName">
+      <Flex row align-center class="gap-2 px-2" v-if="!isEditingName">
+        <Button icon="yes" rounded variant="text" size="small"
+                severity="secondary" @click="close">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </Button>
+
         <h1 class="group-title">{{ group.name }}</h1>
-        <button class="btn-icon" @click="startEditName" title="Rename group"
-                id="rename-group-btn">
-          ✏️
-        </button>
+
+        <Button icon="yes" rounded variant="text" size="small"
+                severity="secondary" @click="startEditName">
+          <span class="material-symbols-outlined">edit</span>
+        </Button>
       </Flex>
-      <Flex row align-center class="gap-2" v-else
-            :is="'form'" @submit.prevent="saveName">
-        <input
-               v-model="editName"
-               class="input group-name-input"
-               autofocus
-               @keydown.escape="cancelEditName"
-               id="group-name-edit-input" />
-        <button type="submit" class="btn btn-primary btn-sm"
-                id="save-name-btn">Save</button>
-        <button type="button" class="btn btn-ghost btn-sm"
-                @click="cancelEditName" id="cancel-name-btn">Cancel</button>
+
+      <Flex row align-center class="gap-2 px-2"
+            :style="isEditingName ? {} : { 'opacity': 0, 'position': 'absolute', 'left': '-10000000px' }">
+
+        <InputText v-model="editName" id="group-name-edit-input"/>
+
+        <Button icon="yes" rounded variant="text" size="small"
+                severity="primary" @click="saveName">
+          <span class="material-symbols-outlined">save</span>
+        </Button>
+
+        <Button icon="yes" rounded variant="text" size="small"
+                severity="secondary" @click="cancelEditName">
+          <span class="material-symbols-outlined">cancel</span>
+        </Button>
       </Flex>
     </header>
 
@@ -81,10 +100,7 @@ watchEffect(() => {
 
 <style scoped lang="scss">
 .group-view {
-  max-width: 1100px;
   width: 100%;
-  margin: 0 auto;
-  padding: 32px 24px;
 }
 
 .group-title {
