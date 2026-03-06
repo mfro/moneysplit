@@ -1,19 +1,32 @@
 <template>
   <Flex column class="gap-2" align-stretch>
     <InputText v-model="label" inputId="label_input" fluid
-               :minFractionDigits="0"
-               :maxFractionDigits="2" />
+               placeholder="Label" />
 
-    <InputGroup>
-      <InputGroupAddon>
-        <i class="material-symbols-outlined"
-           style="margin: -1000px 0">attach_money</i>
-      </InputGroupAddon>
+    <Flex class="gap-2">
 
-      <InputNumber v-model="cost" inputId="price_input"
-                   :minFractionDigits="0"
-                   :maxFractionDigits="2" />
-    </InputGroup>
+      <InputGroup>
+        <InputGroupAddon>
+          <i class="material-symbols-outlined"
+             style="margin: -1000px 0">attach_money</i>
+        </InputGroupAddon>
+
+        <InputText v-model="costRaw" inputId="price_input"
+                   inputmode="decimal"
+                   placeholder="Cost"
+                   v-keyfilter.num />
+      </InputGroup>
+
+      <InputGroup>
+        <InputGroupAddon>
+          <i class="material-symbols-outlined"
+             style="margin: -1000px 0">event</i>
+        </InputGroupAddon>
+
+        <DatePicker v-model="date" showButtonBar />
+      </InputGroup>
+
+    </Flex>
 
     <InputGroup>
       <InputGroupAddon>
@@ -25,21 +38,12 @@
               v-model="payer" />
     </InputGroup>
 
-    <InputGroup>
-      <InputGroupAddon>
-        <i class="material-symbols-outlined"
-           style="margin: -1000px 0">event</i>
-      </InputGroupAddon>
-
-      <DatePicker v-model="date" showButtonBar />
-    </InputGroup>
-
     <Flex column class="gap-2" v-if="availablePeople.length"
           style="max-height: calc(100svh - 20rem); overflow-y: auto">
       <Flex row align-center justify-space-between class="gap-2"
             v-for="(person, i) in availablePeople">
 
-        <Flex column class="gap-1 py-2">
+        <Flex column class="gap-1">
           <span>{{ person.name }}</span>
           <span class="split-preview" v-if="getPreview(person.id)">{{
             formatCost(getPreview(person.id)!) }}</span>
@@ -58,8 +62,7 @@
                        @input="e => getParticipant(person.id)!.ratio = (e.value as number)"
                        :disabled="!isParticipant(person.id)"
                        :max-fraction-digits="20"
-                       style="max-width: 10ch"
-                       size="large" />
+                       style="max-width: 10ch" />
         </InputGroup>
       </Flex>
     </Flex>
@@ -83,10 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, shallowRef } from 'vue';
 import Flex from '../ui/Flex.vue';
 import { computeSplit, type RatioParticipant, type Transaction } from '../../../moneysplit-common';
-import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, Select } from 'primevue';
+import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select } from 'primevue';
 import type { Driver } from '@/driver';
 import { formatCost } from '@/util';
 import { localUserName } from '@/localStorage';
@@ -104,8 +107,15 @@ function getLocalPayer() {
   return props.driver.state.data?.people.find(p => p.name == localUserName.value);
 }
 
+const costRaw = shallowRef(props.modelValue?.cost.toString() ?? '');
+const cost = computed(() => {
+  if (!/^\d+(\.\d{1,2})?$/.test(costRaw.value)) return null;
+  const value = parseFloat(costRaw.value);
+  if (isNaN(value)) return null;
+  return Math.floor(value * 100) / 100;
+});
+
 const label = ref(props.modelValue?.label ?? null);
-const cost = ref(props.modelValue?.cost ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer) ?? getLocalPayer() ?? null);
 const participants = ref<RatioParticipant[]>(props.modelValue?.split.participants ?? props.driver.state.data!.people.map(person => ({
@@ -116,8 +126,9 @@ const participants = ref<RatioParticipant[]>(props.modelValue?.split.participant
 const availablePeople = computed(() => props.driver.state.data!.people);
 
 const preview = computed<Transaction | null>(() => {
-  if (payer.value
+  if (payer.value !== null
     && cost.value
+    && date.value
     && label.value
     && participants.value.length > 0) {
     return {

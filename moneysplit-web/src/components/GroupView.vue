@@ -115,7 +115,7 @@ function saveTransaction(transaction: Transaction | null) {
       <div style="margin-top: 6rem" />
 
       <p v-if="!group.transactions.length" class="empty-state py-4">
-        No transactions yet
+        Start spending money
       </p>
     </Flex>
 
@@ -200,10 +200,13 @@ function saveTransaction(transaction: Transaction | null) {
   right: 2rem;
 }
 
+.transaction-label {
+  font-weight: 600;
+}
+
 .transaction-cost {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-primary);
 }
 
 .transaction-split {
@@ -216,7 +219,7 @@ function saveTransaction(transaction: Transaction | null) {
 
 .empty-state {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
 }
 </style>

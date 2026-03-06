@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, watchEffect } from 'vue';
 import { assert, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
@@ -35,6 +35,12 @@ export class WebSocketDriver implements Driver {
     ws.addEventListener('open', () => {
       state.isConnected = true;
       state.isConnecting = false;
+
+      watchEffect(() => {
+        if (state.token != null && state.data != null) {
+          putKnownGroup(state.token, state.data.name);
+        }
+      });
     });
 
     ws.addEventListener('message', (e) => {
@@ -43,8 +49,6 @@ export class WebSocketDriver implements Driver {
       if (message.type == 'init') {
         state.data = message.data;
         state.token = message.token;
-
-        putKnownGroup(state.token, state.data.name);
       } else if (message.type == 'apply') {
         assert(state.data != null, 'invalid apply');
 

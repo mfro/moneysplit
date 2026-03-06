@@ -38,7 +38,7 @@ onMounted(() => {
       <p class="landing-subtitle mb-6">Split expenses with friends,
         effortlessly.</p>
 
-      <InputText class="mb-6" v-model="localUserName"/>
+      <InputText class="mb-6" v-model="localUserName" id="localUserName" />
 
       <Card class="minimal-card">
         <template #title>Create a Group</template>
@@ -55,7 +55,8 @@ onMounted(() => {
         </template>
       </Card>
 
-      <Card class="minimal-card  mt-5" v-if="knownGroups?.length" style="overflow: hidden">
+      <Card class="minimal-card  mt-5" v-if="knownGroups?.length"
+            style="overflow: hidden">
         <template #title>
           Your Groups
         </template>
