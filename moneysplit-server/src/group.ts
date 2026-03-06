@@ -16,6 +16,7 @@ export class GroupManager {
 
     const group: Group = {
       name: 'Group split',
+      nextId: 0,
       people: [],
       transactions: [],
     };
@@ -59,12 +60,16 @@ export class GroupManager {
 
     if (message.type !== 'apply') return;
 
-    // Apply the operation to the server's in-memory state
-    message.op.impl(state.group, ...message.args);
+    try {
+      // Apply the operation to the server's in-memory state
+      message.op.impl(state.group, ...message.args);
 
-    // Broadcast to all clients (including sender)
-    for (const client of state.clients) {
-      client.send(raw);
+      // Broadcast to all clients (including sender)
+      for (const client of state.clients) {
+        client.send(raw);
+      }
+    } catch(e) {
+      console.error(e);
     }
   }
 }

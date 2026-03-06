@@ -2,8 +2,8 @@
 import { onMounted } from 'vue';
 import { type Driver, OfflineDriver, WebSocketDriver } from '../driver';
 import Flex from '../ui/Flex.vue';
-import { knownGroups, type KnownGroup } from '@/localStorage';
-import { Button, Card } from 'primevue';
+import { knownGroups, localUserName } from '@/localStorage';
+import { Button, Card, InputText } from 'primevue';
 
 const emit = defineEmits<{
   connect: [driver: Driver];
@@ -38,6 +38,8 @@ onMounted(() => {
       <p class="landing-subtitle mb-6">Split expenses with friends,
         effortlessly.</p>
 
+      <InputText class="mb-6" v-model="localUserName"/>
+
       <Card class="minimal-card">
         <template #title>Create a Group</template>
 
@@ -53,31 +55,21 @@ onMounted(() => {
         </template>
       </Card>
 
-      <!-- <div class="card landing-card">
-        <h2 class="mb-1">Create a Group</h2>
-        <p class="mb-4">Start a new group to begin tracking shared expenses.</p>
+      <Card class="minimal-card  mt-5" v-if="knownGroups?.length" style="overflow: hidden">
+        <template #title>
+          Your Groups
+        </template>
 
-        <Flex justify-end class="gap-2">
-          <Button @click="createOfflineGroup">
-            Offline Group
-          </Button>
-          <Button @click="createGroup">
-            New Group
-          </Button>
-        </Flex>
-      </div> -->
-
-      <div class="card landing-card mt-5" v-if="knownGroups?.length">
-        <h2 class="mb-1">Your Groups</h2>
-
-        <Flex column>
-          <template v-for="group in knownGroups">
-            <Flex class="known-group" @click="joinGroup(group.token)">
-              <span>{{ group.name }}</span>
-            </Flex>
-          </template>
-        </Flex>
-      </div>
+        <template #content>
+          <Flex column>
+            <template v-for="group in knownGroups">
+              <Flex class="known-group" @click="joinGroup(group.token)">
+                <span>{{ group.name }}</span>
+              </Flex>
+            </template>
+          </Flex>
+        </template>
+      </Card>
     </Flex>
   </Flex>
 </template>
@@ -123,22 +115,16 @@ onMounted(() => {
 
 .known-group {
   cursor: pointer;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition);
+  padding: 10px 48px;
+  margin: 0 -48px;
+  user-select: none;
 
   &:hover {
-    background: var(--bg-hover);
+    background-color: var(--p-button-text-secondary-hover-background);
   }
 
-  .person-remove {
-    margin-left: auto;
-    opacity: 0;
-    transition: opacity var(--transition);
-  }
-
-  &:hover .person-remove {
-    opacity: 1;
+  &:active {
+    background-color: var(--p-button-text-secondary-active-background);
   }
 }
 

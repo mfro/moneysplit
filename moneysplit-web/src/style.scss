@@ -11,9 +11,9 @@ $text-unit: 1rem;
   --bg-input: #2a2d3a;
   --bg-hover: #2f3340;
 
-  --text-primary: #202020;
-  --text-secondary: #303030;
-  --text-muted: #505050;
+  --text-primary: #303030;
+  --text-secondary: #606060;
+  --text-muted: #808080;
 
   --accent: #6c8cff;
   --accent-hover: #8ba3ff;
@@ -48,6 +48,7 @@ html, body {
   background: var(--bg-primary);
   color: var(--text-primary);
   overscroll-behavior: none;
+  padding: 0 !important;
 }
 
 #app {

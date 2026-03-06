@@ -1,0 +1,5 @@
+- photo OCR to assign ratios
+- offline mode/merge resolution
+- server persistence / change tracking
+- client optimistic locking
+- renaming people

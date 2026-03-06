@@ -1,4 +1,4 @@
-import { reactive, watchEffect } from 'vue';
+import { reactive } from 'vue';
 import { assert, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
@@ -43,22 +43,18 @@ export class WebSocketDriver implements Driver {
       if (message.type == 'init') {
         state.data = message.data;
         state.token = message.token;
+
+        putKnownGroup(state.token, state.data.name);
       } else if (message.type == 'apply') {
         assert(state.data != null, 'invalid apply');
 
         message.op.impl(state.data, ...message.args);
       }
     });
-
-    watchEffect(() => {
-      if (this.state.token && this.state.data) {
-        putKnownGroup(this.state.token, this.state.data.name);
-      }
-    });
   }
 
   static connect(path: string) {
-    const url = new URL(path, 'ws://192.168.0.5:8080');
+    const url = new URL(path, 'ws://localhost:8080');
 
     const ws = new WebSocket(url);
 
@@ -98,6 +94,7 @@ export class OfflineDriver implements Driver {
     this.state = reactive({
       data: {
         name: 'Offline group',
+        nextId: 1,
         people: [],
         transactions: [],
       },

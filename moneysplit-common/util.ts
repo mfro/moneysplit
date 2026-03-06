@@ -10,6 +10,12 @@ export function map<T extends {}, V extends { [K in keyof T]: any }>(o: T, fn: <
   return result;
 }
 
+export function zip<A, B>(a: A[], b: B[]) {
+  assert(a.length == b.length, 'invalid zip');
+
+  return a.map((v, i) => [v, b[i]!] as const);
+}
+
 export class BiMap<T1, T2> {
   readonly forward = new Map<T1, T2>();
   readonly backward = new Map<T2, T1>();

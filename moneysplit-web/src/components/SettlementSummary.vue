@@ -19,10 +19,10 @@ interface Payment {
 }
 
 const balances = computed<Balance[]>(() => {
-  const map = new Map<Person, number>();
+  const map = new Map<number, number>();
 
   for (const person of props.group.people) {
-    map.set(person, 0);
+    map.set(person.id, 0);
   }
 
   for (const tx of props.group.transactions) {
@@ -36,7 +36,7 @@ const balances = computed<Balance[]>(() => {
   }
 
   return props.group.people
-    .map(person => ({ person, net: map.get(person) ?? 0 }))
+    .map(person => ({ person, net: map.get(person.id) ?? 0 }))
     .sort((a, b) => a.net - b.net);
 });
 
@@ -89,7 +89,6 @@ function formatAmount(n: number) {
       <Flex column class="gap-1 mb-4">
         <Flex row align-center class="gap-2 balance-row"
               v-for="b in balances"
-              :key="b.person.name"
               :class="{ positive: b.net > 0.005, negative: b.net < -0.005 }">
           <span class="balance-name">{{ b.person.name }}</span>
           <span class="balance-amount" v-if="b.net > 0.005">+{{
@@ -104,7 +103,7 @@ function formatAmount(n: number) {
       <div v-if="payments.length" class="payments pt-3">
         <h4 class="mb-2">Suggested Payments</h4>
         <Flex row align-center class="gap-2 payment-row"
-              v-for="(p, i) in payments" :key="i">
+              v-for="(p, i) in payments">
           <span class="payment-from">{{ p.from.name }}</span>
           <span class="payment-arrow">→</span>
           <span class="payment-to">{{ p.to.name }}</span>

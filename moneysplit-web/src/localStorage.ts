@@ -53,3 +53,5 @@ export function putKnownGroup(token: string, name: string) {
 
   KNOWN_GROUPS_KEY.value = knownGroups;
 }
+
+export const localUserName = localStorageRef<'string'>('mfro:user-name', true);
