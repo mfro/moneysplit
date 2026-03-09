@@ -2,6 +2,10 @@ export function assert(value: boolean, message: string): asserts value {
   if (!value) throw new Error(message);
 }
 
+export function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export function map<T extends {}, V extends { [K in keyof T]: any }>(o: T, fn: <K extends keyof T>(k: keyof T, v: T[K]) => V[K]) {
   const result = {} as any;
   for (const key in o) {

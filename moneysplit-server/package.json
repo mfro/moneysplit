@@ -4,13 +4,15 @@
   "private": true,
   "main": "build/main.js",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --outfile=build/main.js",
-    "watch": "esbuild src/main.ts --bundle --platform=node --outfile=build/main.js --watch"
+    "build": "esbuild src/main.ts --bundle --platform=node --external:better-sqlite3 --outfile=build/main.js",
+    "watch": "esbuild src/main.ts --bundle --platform=node --external:better-sqlite3 --outfile=build/main.js --watch"
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.11.0",
     "@types/ws": "^8.18.0",
     "esbuild": "^0.27.3",

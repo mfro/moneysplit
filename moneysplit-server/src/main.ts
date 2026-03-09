@@ -1,10 +1,9 @@
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
+
 import { GroupManager } from './group';
 
 const PORT = 8080;
-
-const manager = new GroupManager();
 
 const server = createServer((req, res) => {
   res.writeHead(404);
@@ -12,6 +11,8 @@ const server = createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server });
+
+const manager = new GroupManager();
 
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${PORT}`);

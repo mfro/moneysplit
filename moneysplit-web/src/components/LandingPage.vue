@@ -91,27 +91,7 @@ onMounted(() => {
 
 .landing-subtitle {
   color: var(--text-secondary);
-  font-size: 1.1rem;
-}
-
-.minimal-card {
-  width: 100%;
-  border-radius: 0;
-}
-
-.landing-card {
-  text-align: left;
-  width: 100%;
-
-  h2 {
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  p {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-  }
+  font-size: 1rem;
 }
 
 .known-group {
@@ -127,16 +107,5 @@ onMounted(() => {
   &:active {
     background-color: var(--p-button-text-secondary-active-background);
   }
-}
-
-.person-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.empty-state {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  text-align: center;
 }
 </style>

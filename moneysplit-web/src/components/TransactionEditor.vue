@@ -4,7 +4,6 @@
                placeholder="Label" />
 
     <Flex class="gap-2">
-
       <InputGroup>
         <InputGroupAddon>
           <i class="material-symbols-outlined"
@@ -38,7 +37,7 @@
               v-model="payer" />
     </InputGroup>
 
-    <Flex column class="gap-2" v-if="availablePeople.length"
+    <Flex column class="gap-2 my-2" v-if="availablePeople.length"
           style="max-height: calc(100svh - 20rem); overflow-y: auto">
       <Flex row align-center justify-space-between class="gap-2"
             v-for="(person, i) in availablePeople">
@@ -88,7 +87,7 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef } from 'vue';
 import Flex from '../ui/Flex.vue';
-import { computeSplit, type RatioParticipant, type Transaction } from '../../../moneysplit-common';
+import { clone, computeSplit, type RatioParticipant, type Transaction } from '../../../moneysplit-common';
 import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select } from 'primevue';
 import type { Driver } from '@/driver';
 import { formatCost } from '@/util';
@@ -118,7 +117,7 @@ const cost = computed(() => {
 const label = ref(props.modelValue?.label ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer) ?? getLocalPayer() ?? null);
-const participants = ref<RatioParticipant[]>(props.modelValue?.split.participants ?? props.driver.state.data!.people.map(person => ({
+const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants) ?? props.driver.state.data!.people.map(person => ({
   person: person.id,
   ratio: 1,
 })));
@@ -197,20 +196,6 @@ function remove() {
 </script>
 
 <style scoped lang="scss">
-.participant-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-
-  input[type="checkbox"] {
-    accent-color: var(--accent);
-    width: 16px;
-    height: 16px;
-  }
-}
-
 .split-preview {
   color: var(--text-secondary);
   font-size: 0.8rem;

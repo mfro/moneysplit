@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
 import { type Driver } from '../driver';
-import { ADD_TRANSACTION, assert, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
+import { ADD_TRANSACTION, assert, computeSplit, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
 import Flex from '../ui/Flex.vue';
 import { Button, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
 import { formatCost } from '@/util';
 import TransactionEditor from './TransactionEditor.vue';
+import { localUserName } from '@/localStorage';
+import Balance from '@/ui/Balance.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -42,11 +44,31 @@ const sortedTransactions = computed(() => {
     .sort((a, b) => b.transaction.date.valueOf() - a.transaction.date.valueOf());
 });
 
-function splitSummary(transaction: Transaction) {
+function transactionSummary(transaction: Transaction) {
   const payer = group.value!.people.find(p => p.id == transaction.payer);
   assert(payer != null, 'payer not found');
 
   return `Payed by ${payer.name} on ${transaction.date.toLocaleDateString()}`;
+}
+
+function transactionPreview(transaction: Transaction) {
+  const localUser = group.value!.people.find(p => p.name == localUserName.value);
+  if (!localUser) return null;
+
+  const split = computeSplit(transaction);
+  const index = transaction.split.participants.findIndex(p => p.person == localUser.id)
+
+  const paid = transaction.payer == localUser.id
+    ? transaction.cost
+    : 0;
+
+  const portion = index == -1
+    ? 0
+    : split[index]!;
+
+  if (paid == portion) return null;
+
+  return paid - portion;
 }
 
 function createTransaction(transaction: Transaction | null) {
@@ -89,32 +111,46 @@ function saveTransaction(transaction: Transaction | null) {
 
       <Flex grow />
 
-      <Button icon="yes" rounded variant="text"
-              severity="secondary" @click="isEditing = true"
-              style="flex: 0 0 auto">
+      <Button icon="yes" rounded variant="text" severity="secondary"
+              @click="isEditing = true" style="flex: 0 0 auto">
         <span class="material-symbols-outlined">more_horiz</span>
       </Button>
     </Flex>
 
     <Flex column class="pa-3 gap-1" style="overflow: hidden">
-      <template v-for="{ transaction, index} in sortedTransactions">
+      <template v-for="{ transaction, index } in sortedTransactions">
         <Flex align-center class="gap-2 transaction-item"
               @click="editTransaction = index">
 
-          <Flex column class="gap-1">
-            <span class="transaction-label">{{ transaction.label }}</span>
-            <span class="transaction-split">{{ splitSummary(transaction) }}</span>
+          <Flex column align-start class="gap-1">
+            <span class="transaction-label">
+              {{ transaction.label }}
+            </span>
+            <span class="transaction-split">
+              {{ transactionSummary(transaction) }}
+            </span>
           </Flex>
 
           <Flex grow />
 
-          <span class="transaction-cost">{{ formatCost(transaction.cost) }}</span>
+          <Flex column align-end class="gap-1">
+            <span class="transaction-cost">
+              {{ formatCost(transaction.cost) }}
+            </span>
+            <template v-if="transactionPreview(transaction)">
+              <Balance :value="transactionPreview(transaction)!" class="transaction-preview" />
+            </template>
+          </Flex>
         </Flex>
       </template>
 
       <div style="margin-top: 6rem" />
 
-      <p v-if="!group.transactions.length" class="empty-state py-4">
+      <p v-if="!group.people.length" class="empty-state py-4">
+        This group is empty
+      </p>
+
+      <p v-else-if="!group.transactions.length" class="empty-state py-4">
         Start spending money
       </p>
     </Flex>
@@ -169,13 +205,12 @@ function saveTransaction(transaction: Transaction | null) {
 }
 
 .group-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .loading-text {
   color: var(--text-secondary);
-  font-size: 1.1rem;
 }
 
 .transaction-item {
@@ -205,7 +240,6 @@ function saveTransaction(transaction: Transaction | null) {
 }
 
 .transaction-cost {
-  font-size: 1.2rem;
   font-weight: 600;
 }
 
@@ -215,6 +249,10 @@ function saveTransaction(transaction: Transaction | null) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.transaction-preview {
+  font-size: 0.8rem;
 }
 
 .empty-state {

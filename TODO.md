@@ -1,5 +1,8 @@
-- photo OCR to assign ratios
-- offline mode/merge resolution
-- server persistence / change tracking
+- payments
+
 - client optimistic locking
+- offline mode/merge resolution
+
+- server-side change tracking
+- photo OCR to assign ratios
 - renaming people

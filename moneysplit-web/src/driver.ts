@@ -1,5 +1,5 @@
 import { reactive, watchEffect } from 'vue';
-import { assert, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, delay, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
 export interface State {
@@ -27,8 +27,9 @@ export class WebSocketDriver implements Driver {
       state.isConnecting = false;
     });
 
-    ws.addEventListener('error', (e) => {
+    ws.addEventListener('error', async (e) => {
       console.error(e);
+      await delay(1000);
       location.reload();
     });
 
