@@ -1,39 +1,12 @@
 @import '@material-symbols/font-400/outlined.css';
 
-$unit: 4px;
+$unit: 0.25rem;
 $text-unit: 1rem;
 
 :root {
-  --bg-primary: #e0e0e0;
-  --bg-secondary: #1a1d27;
-  --bg-card: #22252f;
-  --bg-input: #2a2d3a;
-  --bg-hover: #2f3340;
-
-  --text-primary: #303030;
-  --text-secondary: #606060;
-  --text-muted: #808080;
-
-  --accent: #6c8cff;
-  --accent-hover: #8ba3ff;
-  --accent-subtle: rgba(108, 140, 255, 0.12);
-
-  --green: #4ade80;
-  --green-subtle: rgba(74, 222, 128, 0.12);
-  --red: #f87171;
-  --red-subtle: rgba(248, 113, 113, 0.12);
-
-  --border: #2e3140;
-  --border-focus: #6c8cff;
-
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-
-  --transition: 150ms ease;
+  --text-primary: var(--p-slate-700);
+  --text-secondary: var(--p-slate-600);
+  --text-muted: var(--p-slate-500);
 }
 
 *, *::before, *::after {
@@ -44,7 +17,7 @@ $text-unit: 1rem;
 
 html, body {
   font-family: Arial;
-  background: var(--bg-primary);
+  background: #e0e0e0;
   color: var(--text-primary);
   overscroll-behavior: none;
   padding: 0 !important;

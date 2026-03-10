@@ -1,3 +1,7 @@
 export function formatCost(n: number) {
-  return `$${n.toFixed(2)}`;
+  if (n < 0) {
+    return `+$${(-n / 100).toFixed(2)}`;
+  } else {
+    return `$${(n / 100).toFixed(2)}`;
+  }
 }

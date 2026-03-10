@@ -19,7 +19,7 @@ export class GroupManager {
   private db: Database
 
   constructor() {
-    this.db = sqlite3('db.sqlite');
+    this.db = sqlite3('data/db.sqlite');
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS groups (

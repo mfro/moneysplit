@@ -1,6 +1,6 @@
 <template>
   <span class="balance" :class="{ positive: value > 0, negative: value < 0 }">
-    ${{ Math.abs(value).toFixed(2) }}
+    ${{ Math.abs(value / 100).toFixed(2) }}
   </span>
 </template>
 

@@ -3,7 +3,7 @@ import { WebSocketServer } from 'ws';
 
 import { GroupManager } from './group';
 
-const PORT = 8080;
+const port = parseInt(process.argv[2]);
 
 const server = createServer((req, res) => {
   res.writeHead(404);
@@ -15,7 +15,7 @@ const wss = new WebSocketServer({ server });
 const manager = new GroupManager();
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url ?? '/', `http://localhost:${PORT}`);
+  const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let token = url.searchParams.get('token');
   if (token == null || !manager.getGroup(token)) {
@@ -45,6 +45,6 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`MoneySplit server listening on port ${PORT}`);
+server.listen(port, () => {
+  console.log(`MoneySplit server listening on port ${port}`);
 });

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
 import { type Driver } from '../driver';
-import { ADD_TRANSACTION, assert, computeSplit, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
+import { ADD_TRANSACTION, assert, computeSplit, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
 import Flex from '../ui/Flex.vue';
 import { Button, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
-import { formatCost } from '@/util';
 import TransactionEditor from './TransactionEditor.vue';
 import { localUserName } from '@/localStorage';
-import Balance from '@/ui/Balance.vue';
+import TransactionItem from '@/ui/TransactionItem.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -44,11 +43,40 @@ const sortedTransactions = computed(() => {
     .sort((a, b) => b.transaction.date.valueOf() - a.transaction.date.valueOf());
 });
 
+const schedule = computed(() => {
+  const list = sortedTransactions.value;
+  if (!list?.length) return [];
+
+  let group = {
+    date: list[0]!.transaction.date,
+    entries: [] as { transaction: Transaction, index: number }[],
+  };
+
+  const groups = [group];
+
+  for (const entry of list ?? []) {
+    if (!dateEquals(group.date, entry.transaction.date)) {
+      groups.push(group = {
+        date: entry.transaction.date,
+        entries: [],
+      });
+    }
+
+    group.entries.push(entry);
+  }
+
+  return groups;
+});
+
 function transactionSummary(transaction: Transaction) {
   const payer = group.value!.people.find(p => p.id == transaction.payer);
   assert(payer != null, 'payer not found');
 
-  return `Payed by ${payer.name} on ${transaction.date.toLocaleDateString()}`;
+  if (transaction.cost < 0) {
+    return `Income to ${payer.name}`;
+  } else {
+    return `Payed by ${payer.name}`;
+  }
 }
 
 function transactionPreview(transaction: Transaction) {
@@ -93,10 +121,9 @@ function saveTransaction(transaction: Transaction | null) {
 
 <template>
   <Flex column class="group-view" v-if="group">
-    <Flex row align-center class="gap-2 px-2 py-5">
+    <Flex row align-center class="gap-2 px-2 py-4 header">
       <Button icon="yes" rounded variant="text" size="small"
-              severity="secondary" @click="close"
-              style="flex: 0 0 auto">
+              @click="close" style="flex: 0 0 auto">
         <span class="material-symbols-outlined">chevron_left</span>
       </Button>
 
@@ -111,37 +138,30 @@ function saveTransaction(transaction: Transaction | null) {
 
       <Flex grow />
 
-      <Button icon="yes" rounded variant="text" severity="secondary"
+      <Button icon="yes" rounded variant="text" size="small"
               @click="isEditing = true" style="flex: 0 0 auto">
         <span class="material-symbols-outlined">more_horiz</span>
       </Button>
     </Flex>
 
-    <Flex column class="pa-3 gap-1" style="overflow: hidden">
-      <template v-for="{ transaction, index } in sortedTransactions">
-        <Flex align-center class="gap-2 transaction-item"
-              @click="editTransaction = index">
-
-          <Flex column align-start class="gap-1">
-            <span class="transaction-label">
-              {{ transaction.label }}
-            </span>
-            <span class="transaction-split">
-              {{ transactionSummary(transaction) }}
-            </span>
-          </Flex>
-
-          <Flex grow />
-
-          <Flex column align-end class="gap-1">
-            <span class="transaction-cost">
-              {{ formatCost(transaction.cost) }}
-            </span>
-            <template v-if="transactionPreview(transaction)">
-              <Balance :value="transactionPreview(transaction)!" class="transaction-preview" />
-            </template>
-          </Flex>
+    <Flex column class="gap-2 transactions">
+      <template v-for="{ date, entries } in schedule">
+        <Flex class="px-3 mt-3">
+          <label class="date-header">
+            {{
+              date.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })
+            }}
+          </label>
         </Flex>
+        <template v-for="{ transaction, index } in entries">
+          <TransactionItem :group="group" :transaction="transaction"
+                           @edit="editTransaction = index" />
+        </template>
       </template>
 
       <div style="margin-top: 6rem" />
@@ -164,7 +184,7 @@ function saveTransaction(transaction: Transaction | null) {
       <div style="margin-top: 2rem" />
     </Drawer>
 
-    <Drawer position="bottom" header="Add Transaction" style="height: auto"
+    <Drawer position="bottom" header="Edit Transaction" style="height: auto"
             :visible="typeof editTransaction == 'number'"
             @update:visible="editTransaction = undefined">
 
@@ -175,7 +195,7 @@ function saveTransaction(transaction: Transaction | null) {
       <div style="margin-top: 2rem" />
     </Drawer>
 
-    <Drawer position="bottom" header="Edit Group" style="height: auto"
+    <Drawer position="bottom" header="Group Details" style="height: auto"
             v-model:visible="isEditing">
 
       <GroupEditor :driver="driver" :model-value="group" />
@@ -201,7 +221,12 @@ function saveTransaction(transaction: Transaction | null) {
 .group-view {
   width: 100%;
   min-height: 100svh;
+  height: 100svh;
   background-color: white;
+}
+
+.header {
+  border-bottom: 1px solid var(--p-content-border-color);
 }
 
 .group-title {
@@ -213,19 +238,20 @@ function saveTransaction(transaction: Transaction | null) {
   color: var(--text-secondary);
 }
 
-.transaction-item {
-  cursor: pointer;
-  padding: 10px 48px;
-  margin: 0 -48px;
-  user-select: none;
+.empty-state {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
 
-  &:hover {
-    background-color: var(--p-button-text-secondary-hover-background);
-  }
+.transactions {
+  overflow-y: auto;
+}
 
-  &:active {
-    background-color: var(--p-button-text-secondary-active-background);
-  }
+.date-header {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--text-secondary);
 }
 
 .add-button-container {
@@ -233,31 +259,11 @@ function saveTransaction(transaction: Transaction | null) {
   bottom: 2rem;
   left: 2rem;
   right: 2rem;
-}
+  pointer-events: none;
 
-.transaction-label {
-  font-weight: 600;
-}
-
-.transaction-cost {
-  font-weight: 600;
-}
-
-.transaction-split {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.transaction-preview {
-  font-size: 0.8rem;
-}
-
-.empty-state {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  text-align: center;
+  > button {
+    pointer-events: all;
+    box-shadow: 0 0 1rem white, 0 0 1rem white;
+  }
 }
 </style>

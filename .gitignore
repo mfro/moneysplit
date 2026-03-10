@@ -1,6 +1,6 @@
 /moneysplit-web/dist/
-/moneysplit-server/build/
-/moneysplit-server/db.sqlite
+/moneysplit-server/main.js
+/moneysplit-server/data/
 
 # Logs
 logs

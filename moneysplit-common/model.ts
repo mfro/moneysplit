@@ -16,7 +16,7 @@ export interface Person {
 
 export interface Transaction {
   label: string;
-  cost: number;
+  cost: number; // cents
   date: Date;
   payer: number;
   split: Split;
@@ -87,7 +87,7 @@ export function computeSplit(transaction: Transaction) {
   if (transaction.split.participants.length == 0) return [];
 
   const totalRatio = transaction.split.participants.reduce((s, p) => s + p.ratio, 0);
-  const shares = transaction.split.participants.map(p => Math.round((p.ratio / totalRatio) * transaction.cost * 100) / 100);
+  const shares = transaction.split.participants.map(p => Math.round((p.ratio / totalRatio) * transaction.cost));
   const total = shares.reduce((s, p) => s + p, 0);
 
   shares[0]! += transaction.cost - total;

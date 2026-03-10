@@ -14,14 +14,14 @@ function createOfflineGroup() {
 }
 
 function createGroup() {
-  emit('connect', WebSocketDriver.connect('/connect'));
+  emit('connect', WebSocketDriver.connect('connect'));
 }
 
 function joinGroup(token: string) {
   if (token == 'offline') {
     emit('connect', new OfflineDriver());
   } else {
-    emit('connect', WebSocketDriver.connect(`/connect?token=${encodeURIComponent(token)}`));
+    emit('connect', WebSocketDriver.connect(`connect?token=${encodeURIComponent(token)}`));
   }
 }
 
@@ -32,46 +32,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <Flex grow align-center justify-center class="py-5">
-    <Flex column align-center class="landing-content">
+    <Flex column align-center class="landing-content py-6">
       <h1 class="landing-title mb-2">Money<span>Split</span></h1>
       <p class="landing-subtitle mb-6">Split expenses with friends,
         effortlessly.</p>
 
       <InputText class="mb-6" v-model="localUserName" id="localUserName" />
 
-      <Card class="minimal-card">
-        <template #title>Create a Group</template>
-
-        <template #footer>
-          <Flex justify-end class="gap-2">
-            <Button @click="createOfflineGroup">
-              Offline Group
-            </Button>
-            <Button @click="createGroup">
-              New Group
-            </Button>
-          </Flex>
-        </template>
-      </Card>
-
-      <Card class="minimal-card  mt-5" v-if="knownGroups?.length"
+      <Card class="minimal-card" v-if="knownGroups?.length"
             style="overflow: hidden">
         <template #title>
           Your Groups
         </template>
 
         <template #content>
-          <Flex column>
+          <Flex column class="gap-2">
             <template v-for="group in knownGroups">
               <Flex class="known-group" @click="joinGroup(group.token)">
                 <span>{{ group.name }}</span>
               </Flex>
             </template>
+
+            <Button @click="createGroup" style="align-self: center" class="mt-4">
+              <i class="material-symbols-outlined">add</i>
+              New Group
+            </Button>
           </Flex>
         </template>
       </Card>
-    </Flex>
   </Flex>
 </template>
 
@@ -85,7 +73,7 @@ onMounted(() => {
   font-weight: 700;
 
   span {
-    color: var(--accent);
+    color: var(--p-blue-500);
   }
 }
 

@@ -13,9 +13,13 @@ const props = defineProps<{
   group: Group;
 }>();
 
+const localUser = computed(() => {
+  return props.group.people.find(p => p.name == localUserName.value);
+})
+
 const showJoinButton = computed(() =>
   localUserName.value
-  && !props.group.people.find(p => p.name == localUserName.value)
+  && !localUser.value
 );
 function joinGroup() {
   const name = localUserName.value!;
@@ -98,17 +102,17 @@ async function showShareDialog() {
     </Flex>
 
     <Flex class="gap-2" style="align-self: center">
+      <Button @click="showShareDialog()">
+        <span class="material-symbols-outlined">group_add</span>
+        Invite
+      </Button>
+
       <template v-if="showJoinButton">
         <Button @click="joinGroup()">
           <i class="material-symbols-outlined">person_add</i>
           Join
         </Button>
       </template>
-
-      <Button @click="showShareDialog()">
-        <span class="material-symbols-outlined">group_add</span>
-        Share
-      </Button>
     </Flex>
 
     <Dialog modal dismissableMask header="Group Invite" :visible="!!qrCode"

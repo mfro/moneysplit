@@ -20,6 +20,12 @@ export function zip<A, B>(a: A[], b: B[]) {
   return a.map((v, i) => [v, b[i]!] as const);
 }
 
+export function dateEquals(a: Date, b: Date) {
+  return a.getFullYear() == b.getFullYear()
+    && a.getMonth() == b.getMonth()
+    && a.getDate() == b.getDate()
+}
+
 export class BiMap<T1, T2> {
   readonly forward = new Map<T1, T2>();
   readonly backward = new Map<T2, T1>();

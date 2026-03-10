@@ -3,11 +3,19 @@
     <InputText v-model="label" inputId="label_input" fluid
                placeholder="Label" />
 
-    <Flex class="gap-2">
-      <InputGroup>
+    <Flex class="gap-2" style="position: relative">
+      <Button style="width: calc(50% - 0.25rem)"
+              variant="outlined"
+              @click="isDebit = !isDebit">
+        {{ isDebit ? 'Income' : 'Expense' }}
+      </Button>
+
+      <InputGroup style="width: calc(50% - 0.25rem)">
         <InputGroupAddon>
           <i class="material-symbols-outlined"
-             style="margin: -1000px 0">attach_money</i>
+             style="margin: -1000px 0;">
+            attach_money
+          </i>
         </InputGroupAddon>
 
         <InputText v-model="costRaw" inputId="price_input"
@@ -15,8 +23,10 @@
                    placeholder="Cost"
                    v-keyfilter.num />
       </InputGroup>
+    </Flex>
 
-      <InputGroup>
+    <Flex class="gap-2">
+      <InputGroup style="flex: 1 0 0">
         <InputGroupAddon>
           <i class="material-symbols-outlined"
              style="margin: -1000px 0">event</i>
@@ -25,17 +35,16 @@
         <DatePicker v-model="date" showButtonBar />
       </InputGroup>
 
+      <InputGroup style="flex: 1 0 0">
+        <InputGroupAddon>
+          <i class="material-symbols-outlined"
+             style="margin: -1000px 0">person</i>
+        </InputGroupAddon>
+
+        <Select :options="props.driver.state.data!.people" optionLabel="name"
+                v-model="payer" />
+      </InputGroup>
     </Flex>
-
-    <InputGroup>
-      <InputGroupAddon>
-        <i class="material-symbols-outlined"
-           style="margin: -1000px 0">person</i>
-      </InputGroupAddon>
-
-      <Select :options="props.driver.state.data!.people" optionLabel="name"
-              v-model="payer" />
-    </InputGroup>
 
     <Flex column class="gap-2 my-2" v-if="availablePeople.length"
           style="max-height: calc(100svh - 20rem); overflow-y: auto">
@@ -106,18 +115,19 @@ function getLocalPayer() {
   return props.driver.state.data?.people.find(p => p.name == localUserName.value);
 }
 
-const costRaw = shallowRef(props.modelValue?.cost.toString() ?? '');
+const costRaw = shallowRef(props.modelValue ? Math.abs(props.modelValue.cost / 100).toString() : '');
+const isDebit = shallowRef(props.modelValue ? props.modelValue.cost < 0 : false);
 const cost = computed(() => {
   if (!/^\d+(\.\d{1,2})?$/.test(costRaw.value)) return null;
-  const value = parseFloat(costRaw.value);
+  const value = Math.round(parseFloat(costRaw.value) * 100);
   if (isNaN(value)) return null;
-  return Math.floor(value * 100) / 100;
+  return (isDebit.value ? -1 : 1) * value;
 });
 
 const label = ref(props.modelValue?.label ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer) ?? getLocalPayer() ?? null);
-const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants) ?? props.driver.state.data!.people.map(person => ({
+const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants ?? null) ?? props.driver.state.data!.people.map(person => ({
   person: person.id,
   ratio: 1,
 })));

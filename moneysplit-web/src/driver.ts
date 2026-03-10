@@ -59,7 +59,7 @@ export class WebSocketDriver implements Driver {
   }
 
   static connect(path: string) {
-    const url = new URL(path, 'ws://localhost:8080');
+    const url = new URL(path, 'wss://api.mfro.me/moneysplit/');
 
     const ws = new WebSocket(url);
 
