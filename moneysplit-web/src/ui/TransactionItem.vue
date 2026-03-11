@@ -48,7 +48,7 @@ const summary = computed(() => {
   if (props.transaction.cost < 0) {
     return `Income to ${payer.name}`;
   } else {
-    return `Payed by ${payer.name}`;
+    return `Paid by ${payer.name}`;
   }
 });
 

@@ -1,5 +1,5 @@
-import { customRef } from 'vue';
-import { deserialize, serialize } from '../../moneysplit-common';
+import { customRef, reactive, toRaw } from 'vue';
+import { assert, deserialize, serialize } from '../../moneysplit-common';
 
 export const localStorage = {
   get(name: string, rawString = false) {
@@ -38,10 +38,15 @@ export function localStorageRef<T = unknown>(name: string, rawString = false) {
 export interface KnownGroup {
   name: string;
   token: string;
+  hidden?: boolean;
 }
 
 const KNOWN_GROUPS_KEY = localStorageRef<KnownGroup[]>('mfro:moneysplit:knownGroups');
-export const knownGroups: KnownGroup[] = KNOWN_GROUPS_KEY.value ?? [];
+export const knownGroups: KnownGroup[] = reactive(KNOWN_GROUPS_KEY.value ?? []);
+
+function saveKnownGroups() {
+  KNOWN_GROUPS_KEY.value = toRaw(knownGroups);
+}
 
 export function putKnownGroup(token: string, name: string) {
   let group = knownGroups.find(g => g.token == token);
@@ -51,7 +56,20 @@ export function putKnownGroup(token: string, name: string) {
     knownGroups.push({ token, name })
   }
 
-  KNOWN_GROUPS_KEY.value = knownGroups;
+  saveKnownGroups();
+}
+
+export function toggleKnownGroup(group: KnownGroup) {
+  group.hidden = !group.hidden
+  saveKnownGroups();
+}
+
+export function removeKnownGroup(group: KnownGroup) {
+  const index = knownGroups.indexOf(group);
+  assert(index != -1, 'invalid removeKnownGroup');
+
+  knownGroups.splice(index, 1);
+  saveKnownGroups();
 }
 
 export const localUserName = localStorageRef<'string'>('mfro:user-name', true);

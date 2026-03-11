@@ -20,8 +20,8 @@
 
         <InputText v-model="costRaw" inputId="price_input"
                    inputmode="decimal"
-                   placeholder="Cost"
-                   v-keyfilter.num />
+                   v-keyfilter.num
+                   :placeholder="isDebit ? 'Amount' : 'Cost'" />
       </InputGroup>
     </Flex>
 

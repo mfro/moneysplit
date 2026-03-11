@@ -1,7 +1,4 @@
 - payment simplification
-- client group management/sorting/hiding
-
-- client optimistic locking
 - offline mode/merge resolution
 
 - sub-cent splitting

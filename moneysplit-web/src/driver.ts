@@ -1,10 +1,12 @@
 import { reactive, watchEffect } from 'vue';
-import { assert, delay, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, delay, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
 export interface State {
   isConnecting: boolean;
   isConnected: boolean;
+
+  isPendingSync: boolean;
 
   token: string | null
   data: Group | null;
@@ -17,7 +19,20 @@ export interface Driver {
   close(): void;
 }
 
+interface QueueEntry {
+  op: Operation<any>,
+  args: unknown[],
+  beforeState: Group,
+}
+
+function isExpected(entry: QueueEntry, op: Operation<any>, args: unknown[]) {
+  return op == entry.op
+    && JSON.stringify(serialize(args)) == JSON.stringify(serialize(entry.args));
+}
+
 export class WebSocketDriver implements Driver {
+  readonly queue: QueueEntry[] = [];
+
   constructor(
     readonly state: State,
     readonly ws: WebSocket,
@@ -53,6 +68,16 @@ export class WebSocketDriver implements Driver {
       } else if (message.type == 'apply') {
         assert(state.data != null, 'invalid apply');
 
+        const next = this.queue.shift();
+        if (next && !isExpected(next, message.op, message.args)) {
+          console.error(`desync detected! rolling back queue of ${this.queue.length + 1} changes`);
+
+          state.data = next.beforeState;
+          this.queue.length = 0;
+        }
+
+        state.isPendingSync = this.queue.length > 0;
+
         message.op.impl(state.data, ...message.args);
       }
     });
@@ -66,6 +91,7 @@ export class WebSocketDriver implements Driver {
     const state: State = reactive({
       isConnecting: true,
       isConnected: false,
+      isPendingSync: false,
 
       token: null,
       data: null,
@@ -75,10 +101,20 @@ export class WebSocketDriver implements Driver {
   }
 
   apply<A extends unknown[]>(op: Operation<A>, ...args: A) {
+    assert(this.state.data != null, 'invalid apply');
+
+    const beforeState = clone(this.state.data);
+    this.queue.push({
+      beforeState,
+      op, args,
+    });
+    this.state.isPendingSync = this.queue.length > 0;
+
+    op.impl(this.state.data, ...args);
+
     const message: Message = {
       type: 'apply',
-      op: op as Operation,
-      args,
+      op, args,
     };
 
     this.ws.send(JSON.stringify(serialize(message)));
@@ -106,6 +142,7 @@ export class OfflineDriver implements Driver {
       token: 'offline',
       isConnected: true,
       isConnecting: false,
+      isPendingSync: false,
     })
   }
 
@@ -113,6 +150,5 @@ export class OfflineDriver implements Driver {
     op.impl(this.state.data!, ...args);
   }
 
-  close(): void {
-  }
+  close(): void { }
 }

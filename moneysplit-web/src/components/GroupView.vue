@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
 import { type Driver } from '../driver';
-import { ADD_TRANSACTION, assert, computeSplit, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
+import { ADD_TRANSACTION, assert, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
 import Flex from '../ui/Flex.vue';
 import { Button, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
 import TransactionEditor from './TransactionEditor.vue';
-import { localUserName } from '@/localStorage';
 import TransactionItem from '@/ui/TransactionItem.vue';
 
 const props = defineProps<{
@@ -68,37 +67,6 @@ const schedule = computed(() => {
   return groups;
 });
 
-function transactionSummary(transaction: Transaction) {
-  const payer = group.value!.people.find(p => p.id == transaction.payer);
-  assert(payer != null, 'payer not found');
-
-  if (transaction.cost < 0) {
-    return `Income to ${payer.name}`;
-  } else {
-    return `Payed by ${payer.name}`;
-  }
-}
-
-function transactionPreview(transaction: Transaction) {
-  const localUser = group.value!.people.find(p => p.name == localUserName.value);
-  if (!localUser) return null;
-
-  const split = computeSplit(transaction);
-  const index = transaction.split.participants.findIndex(p => p.person == localUser.id)
-
-  const paid = transaction.payer == localUser.id
-    ? transaction.cost
-    : 0;
-
-  const portion = index == -1
-    ? 0
-    : split[index]!;
-
-  if (paid == portion) return null;
-
-  return paid - portion;
-}
-
 function createTransaction(transaction: Transaction | null) {
   if (transaction != null) {
     props.driver.apply(ADD_TRANSACTION, transaction);
@@ -120,6 +88,11 @@ function saveTransaction(transaction: Transaction | null) {
 </script>
 
 <template>
+  <div class="sync-bar" v-if="driver.state.isPendingSync">
+    <span />
+    <span />
+  </div>
+
   <Flex column class="group-view" v-if="group">
     <Flex row align-center class="gap-2 px-2 py-4 header">
       <Button icon="yes" rounded variant="text" size="small"
@@ -218,6 +191,46 @@ function saveTransaction(transaction: Transaction | null) {
 </template>
 
 <style scoped lang="scss">
+$syncDuration: 4000ms;
+
+@keyframes sync {
+  0% {
+    left: -25%;
+    right: 100%
+  }
+
+  62.5% {
+    left: 100%;
+    right: -25%
+  }
+}
+
+.sync-bar {
+  height: 0.25rem;
+  border-radius: 0.125rem;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  overflow: hidden;
+
+  position: fixed;
+  top: 0;
+  left: 4rem;
+  right: 4rem;
+  background-color: var(--p-primary-200);
+
+  > span {
+    display: inline-block;
+    height: 100%;
+    background-color: var(--p-primary-color);
+    position: absolute;
+    animation: $syncDuration sync infinite linear;
+  }
+
+  > span:nth-child(2) {
+    animation-delay: calc($syncDuration * 0.5);
+  }
+}
+
 .group-view {
   width: 100%;
   min-height: 100svh;
