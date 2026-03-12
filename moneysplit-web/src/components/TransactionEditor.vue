@@ -108,10 +108,6 @@ const emit = defineEmits<{
   'update:modelValue': [Transaction | null];
 }>();
 
-function getLocalPayer() {
-  return props.driver.state.data?.people.find(p => p.name == localUserName.value);
-}
-
 const costRaw = shallowRef(props.modelValue ? Math.abs(props.modelValue.cost / 100).toString() : '');
 const isDebit = shallowRef(props.modelValue ? props.modelValue.cost < 0 : false);
 const cost = computed(() => {
@@ -123,7 +119,11 @@ const cost = computed(() => {
 
 const label = ref(props.modelValue?.label ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
-const payer = ref(props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer) ?? getLocalPayer() ?? null);
+const payer = ref(
+  props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer)
+  ?? props.driver.state.data?.people.find(p => p.name == localUserName.value)
+  ?? null);
+
 const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants ?? null) ?? props.driver.state.data!.people.map(person => ({
   person: person.id,
   ratio: 1,
@@ -138,6 +138,7 @@ const preview = computed<Transaction | null>(() => {
     && label.value
     && participants.value.length > 0) {
     return {
+      id: props.modelValue?.id ?? props.driver.state.data!.nextId,
       label: label.value,
       cost: cost.value,
       date: date.value,
@@ -160,18 +161,11 @@ function getPreview(personId: number) {
   if (index == -1) {
     return null;
   } else {
-    const transaction: Transaction = {
-      label: '',
-      cost: cost.value,
-      date: new Date(),
-      payer: participants.value[0]!.person,
-      split: {
-        type: 'ratio',
-        participants: participants.value,
-      },
-    };
+    const splitPreview = computeSplit(cost.value, {
+      type: 'ratio',
+      participants: participants.value,
+    });
 
-    const splitPreview = computeSplit(transaction);
     return splitPreview[index];
   }
 }

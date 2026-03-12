@@ -44,7 +44,11 @@ export interface KnownGroup {
 function persist<T extends object>(key: string, initializer: () => T) {
   let raw: T;
   try {
-    raw = deserialize(JSON.parse(window.localStorage.getItem(key)!));
+    if (key in localStorage) {
+      raw = deserialize(JSON.parse(window.localStorage.getItem(key)!));
+    } else {
+      raw = initializer();
+    }
   } catch {
     raw = initializer();
   }

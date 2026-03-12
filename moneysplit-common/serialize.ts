@@ -1,5 +1,8 @@
 import { assert, BiMap, map } from './util';
 
+const META_KEY = '_mfro';
+const CONSTANT_ID = -2;
+
 export type Serializable =
   | any
   | Date
@@ -48,7 +51,6 @@ export function register<T extends {}>(typeId: string) {
 }
 
 export function serialize(t: Serializable): unknown {
-  const seen = new Map<any, number>();
   return serialize(t);
 
   function serialize(t: Serializable): unknown {
@@ -69,33 +71,31 @@ export function serialize(t: Serializable): unknown {
         if (t == null)
           return null;
 
-        if (seen.has(t)) {
-          return [-1, seen.get(t)];
-        } else if (constants.hasBackward(t)) {
+        if (constants.hasBackward(t)) {
           if (!constants.hasForward(constants.getBackward(t)!))
             debugger;
-          return [-2, constants.getBackward(t)];
+          return { [META_KEY]: CONSTANT_ID, value: constants.getBackward(t) };
+        } else if (t.constructor == Object) {
+          assert(!(META_KEY in t), 'invalid meta key')
+
+          return map(t as any, (k, v) => serialize(v));
+        } else if (Array.isArray(t)) {
+          return t.map(serialize);
         }
 
         const label = getTypeIdByValue(t);
 
         let value;
-        if (t.constructor == Object) {
-          value = map(t as any, (k, v) => serialize(v));
-        } else if (Array.isArray(t)) {
-          value = t.map(serialize);
-        } else if (t instanceof Date) {
+        if (t instanceof Date) {
           value = t.toISOString();
         }
 
-        seen.set(t, seen.size);
-        return [label, value];
+        return { [META_KEY]: label, value: value };
     }
   }
 }
 
 export function deserialize(t: unknown): Serializable {
-  const objects: any[] = [];
   return deserialize(t);
 
   function deserialize(t: unknown): Serializable {
@@ -116,28 +116,47 @@ export function deserialize(t: unknown): Serializable {
         if (t == null)
           return null;
 
-        assert(Array.isArray(t) && t.length == 2, 'unknown value');
-        if (t[0] == -1) {
-          assert(t[1] < objects.length, 'invalid reference');
-          return objects[t[1]]!;
-        } else if (t[0] == -2) {
-          assert(constants.hasForward(t[1]), 'invalid constant');
-          return constants.getForward(t[1]);
+        if (Array.isArray(t)) {
+          // TODO remove backwards compatibility
+          if (t.length == 2 && t[0] == CONSTANT_ID && typeof t[1] == 'number' && constants.hasForward(t[1])) {
+            return constants.getForward(t[1]);
+          } else if (t.length == 2 && types.hasForward(t[0])) {
+            const type = getTypeById(t[0]);
+            let value;
+
+            if (type == Object) {
+              value = map(t[1], (k, v) => deserialize(v));
+            } else if (type == Array) {
+              value = (t[1] as Array<any>).map(deserialize);
+            } else if (type == Date) {
+              value = new Date(t[1]);
+            }
+
+            return value;
+          }
+
+          return t.map(deserialize);
+        } else if (META_KEY in t) {
+          if (t[META_KEY] == CONSTANT_ID) {
+            assert('value' in t && typeof t.value == 'number' && constants.hasForward(t.value), 'invalid constant');
+            return constants.getForward(t.value);
+          } else {
+            assert(typeof t[META_KEY] == 'string' && 'value' in t, 'invalid object');
+            const type = getTypeById(t[META_KEY])
+
+            let value;
+            if (type == Date) {
+              assert(typeof t.value == 'string', 'invalid date');
+              value = new Date(t.value);
+            } else {
+              assert(false, `unknown type: ${type}`);
+            }
+
+            return value;
+          }
+        } else {
+          return map(t as any, (k, v) => deserialize(v));
         }
-
-        const type = getTypeById(t[0]);
-        let value;
-
-        if (type == Object) {
-          value = map(t[1], (k, v) => deserialize(v));
-        } else if (type == Array) {
-          value = (t[1] as Array<any>).map(deserialize);
-        } else if (type == Date) {
-          value = new Date(t[1]);
-        }
-
-        objects.push(value);
-        return value;
     }
   }
 }

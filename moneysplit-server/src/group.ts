@@ -59,6 +59,12 @@ export class GroupManager {
     if (persisted) {
       const group: Group = deserialize(JSON.parse(persisted['content']));
       this.groups.set(token, { group, clients: new Set() });
+
+      for (const transaction of group.transactions) {
+        if (!('id' in transaction as any)) {
+          transaction.id = ++group.nextId;
+        }
+      }
     }
 
     return this.groups.get(token);

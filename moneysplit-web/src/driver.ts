@@ -1,5 +1,5 @@
 import { reactive, watchEffect } from 'vue';
-import { assert, clone, delay, deserialize, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, delay, deserialize, serialize, UPDATE_TRANSACTION, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
 export interface State {
@@ -84,7 +84,8 @@ export class WebSocketDriver implements Driver {
   }
 
   static connect(path: string) {
-    const url = new URL(path, 'wss://api.mfro.me/moneysplit/');
+    const url = new URL(path, 'ws://localhost:8081/');
+    // const url = new URL(path, 'wss://api.mfro.me/moneysplit/');
 
     const ws = new WebSocket(url);
 

@@ -4,7 +4,7 @@ import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
 import { type Driver } from '../driver';
 import Flex from '../ui/Flex.vue';
-import { ADD_PERSON, computeSplit, delay, DELETE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
+import { ADD_PERSON, canRemovePerson, computeSplit, delay, DELETE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
 import { localUserName } from '@/localStorage';
 import Balance from '@/ui/Balance.vue';
 import Icon from '@/ui/Icon.vue';
@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const localUser = computed(() => {
   return props.group.people.find(p => p.name == localUserName.value);
-})
+});
 
 const showJoinButton = computed(() =>
   localUserName.value
@@ -26,11 +26,6 @@ const showJoinButton = computed(() =>
 function joinGroup() {
   const name = localUserName.value!;
   props.driver.apply(ADD_PERSON, { name });
-}
-
-function canRemovePerson(person: Person) {
-  return !props.group.transactions
-    .some(t => t.payer == person.id || t.split.participants.some(p => p.person == person.id));
 }
 
 function removePerson(person: Person) {
@@ -48,7 +43,7 @@ const balances = computed(() => {
   for (const transaction of props.group.transactions) {
     balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.cost);
 
-    const split = computeSplit(transaction);
+    const split = computeSplit(transaction.cost, transaction.split);
     for (const [participant, portion] of zip(transaction.split.participants, split)) {
       balances.set(participant.person, balances.get(participant.person)! - portion);
     }
@@ -90,7 +85,7 @@ async function showShareDialog() {
 
         <Flex grow />
 
-        <Button v-if="canRemovePerson(person)"
+        <Button v-if="canRemovePerson(group, person.id)"
                 icon="yes" rounded variant="text" size="small"
                 severity="danger"
                 @click="removePerson(person)">

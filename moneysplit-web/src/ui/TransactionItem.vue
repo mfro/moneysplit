@@ -56,7 +56,7 @@ const preview = computed(() => {
   const localUser = props.group.people.find(p => p.name == localUserName.value);
   if (!localUser) return null;
 
-  const split = computeSplit(props.transaction);
+  const split = computeSplit(props.transaction.cost, props.transaction.split);
   const index = props.transaction.split.participants.findIndex(p => p.person == localUser.id)
 
   const paid = props.transaction.payer == localUser.id

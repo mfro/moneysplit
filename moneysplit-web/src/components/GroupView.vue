@@ -36,12 +36,11 @@ watchEffect(() => {
 });
 
 const newTransaction = ref(false);
-const editTransaction = ref<number>();
+const editTransaction = ref<Transaction>();
 
 const sortedTransactions = computed(() => {
   return group.value?.transactions
-    .map((transaction, index) => ({ transaction, index }))
-    .sort((a, b) => b.transaction.date.valueOf() - a.transaction.date.valueOf());
+    .sort((a, b) => b.date.valueOf() - a.date.valueOf());
 });
 
 const schedule = computed(() => {
@@ -49,21 +48,21 @@ const schedule = computed(() => {
   if (!list?.length) return [];
 
   let group = {
-    date: list[0]!.transaction.date,
-    entries: [] as { transaction: Transaction, index: number }[],
+    date: list[0]!.date,
+    entries: [] as Transaction[],
   };
 
   const groups = [group];
 
-  for (const entry of list ?? []) {
-    if (!dateEquals(group.date, entry.transaction.date)) {
+  for (const transaction of list ?? []) {
+    if (!dateEquals(group.date, transaction.date)) {
       groups.push(group = {
-        date: entry.transaction.date,
+        date: transaction.date,
         entries: [],
       });
     }
 
-    group.entries.push(entry);
+    group.entries.push(transaction);
   }
 
   return groups;
@@ -80,10 +79,10 @@ function saveTransaction(transaction: Transaction | null) {
   assert(editTransaction.value !== undefined, 'invalid save transaction');
 
   if (transaction == null) {
-    props.driver.apply(DELETE_TRANSACTION, editTransaction.value);
+    props.driver.apply(DELETE_TRANSACTION, editTransaction.value.id);
     editTransaction.value = undefined;
   } else {
-    props.driver.apply(UPDATE_TRANSACTION, editTransaction.value, transaction);
+    props.driver.apply(UPDATE_TRANSACTION, editTransaction.value.id, transaction);
     editTransaction.value = undefined;
   }
 }
@@ -133,9 +132,9 @@ function saveTransaction(transaction: Transaction | null) {
             }}
           </label>
         </Flex>
-        <template v-for="{ transaction, index } in entries">
+        <template v-for="transaction in entries">
           <TransactionItem :group="group" :transaction="transaction"
-                           @edit="editTransaction = index" />
+                           @edit="editTransaction = transaction" />
         </template>
       </template>
 
@@ -160,12 +159,12 @@ function saveTransaction(transaction: Transaction | null) {
     </Drawer>
 
     <Drawer position="bottom" header="Edit Transaction" style="height: auto"
-            :visible="typeof editTransaction == 'number'"
+            :visible="!!editTransaction"
             @update:visible="editTransaction = undefined">
 
-      <TransactionEditor :driver="driver"
-                         :model-value="group.transactions[editTransaction!]!"
-                         @update:model-value="saveTransaction" />
+      <TransactionEditor :driver="driver" :model-value="editTransaction"
+                         @update:model-value="saveTransaction"
+                         v-if="editTransaction" />
 
       <div style="margin-top: 2rem" />
     </Drawer>

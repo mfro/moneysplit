@@ -1,4 +1,4 @@
-import { addConstant } from './serialize';
+import { addConstant, clone } from './serialize';
 import { assert } from './util';
 
 export interface Group {
@@ -15,6 +15,7 @@ export interface Person {
 }
 
 export interface Transaction {
+  id: number;
   label: string;
   cost: number; // cents
   date: Date;
@@ -56,41 +57,50 @@ export const RENAME_GROUP = define_operation('RENAME_GROUP', (group, name: strin
 
 export const ADD_PERSON = define_operation('ADD_PERSON', (group, person: Omit<Person, 'id'>) => {
   const id = ++group.nextId;
-  group.people.push({ ...person, id });
+  group.people.push({ ...clone(person), id });
 });
 
-export const DELETE_PERSON = define_operation('DELETE_PERSON', (group, index: number) => {
-  assert(index >= 0 && index < group.people.length, 'invalid person removal');
-  const person = group.people[index];
-  const invalid = group.transactions
-    .some(t => t.payer == person?.id || t.split.participants.some(p => p.person == person?.id))
+export const DELETE_PERSON = define_operation('DELETE_PERSON', (group, id: number) => {
+  assert(canRemovePerson(group, id), 'person removal still in transactions')
 
-  assert(!invalid, 'person removal still in transactions')
-  group.people.splice(index, 1);
+  const index = group.people.findIndex(p => p.id == id);
+  if (index != -1) {
+    group.people.splice(index, 1);
+  }
 });
 
-export const ADD_TRANSACTION = define_operation('ADD_TRANSACTION', (group, transaction: Transaction) => {
-  group.transactions.push({ ...transaction });
+export const ADD_TRANSACTION = define_operation('ADD_TRANSACTION', (group, transaction: Omit<Transaction, 'id'>) => {
+  const id = ++group.nextId;
+  group.transactions.push({ ...clone(transaction), id });
 });
 
-export const UPDATE_TRANSACTION = define_operation('UPDATE_TRANSACTION', (group, index: number, update: Transaction) => {
-  assert(index >= 0 && index < group.transactions.length, 'invalid replace transaction');
-  group.transactions[index] = update;
+export const UPDATE_TRANSACTION = define_operation('UPDATE_TRANSACTION', (group, id: number, update: Transaction) => {
+  const index = group.transactions.findIndex(p => p.id == id);
+  if (index != -1) {
+    group.transactions[index] = update;
+  }
 });
 
-export const DELETE_TRANSACTION = define_operation('DELETE_TRANSACTION', (group, index: number) => {
-  assert(index >= 0 && index < group.transactions.length, 'invalid remove transaction');
-  group.transactions.splice(index, 1);
+export const DELETE_TRANSACTION = define_operation('DELETE_TRANSACTION', (group, id: number) => {
+  const index = group.transactions.findIndex(p => p.id == id);
+  if (index != -1) {
+    group.transactions.splice(index, 1);
+  }
 });
 
-export function computeSplit(transaction: Transaction) {
-  if (transaction.split.participants.length == 0) return [];
+export function canRemovePerson(group: Group, id: number) {
+  return !group.transactions
+    .some(t => t.payer == id || t.split.participants.some(p => p.person == id));
+}
 
-  const totalRatio = transaction.split.participants.reduce((s, p) => s + p.ratio, 0);
-  const shares = transaction.split.participants.map(p => Math.round((p.ratio / totalRatio) * transaction.cost));
+export function computeSplit(cost: number, split: Split) {
+  if (split.participants.length == 0) return [];
+
+  const totalRatio = split.participants.reduce((s, p) => s + p.ratio, 0);
+  const shares = split.participants.map(p => Math.round((p.ratio / totalRatio) * cost));
   const total = shares.reduce((s, p) => s + p, 0);
 
-  shares[0]! += transaction.cost - total;
+  shares[0]! += cost - total;
 
   return shares;
 }
