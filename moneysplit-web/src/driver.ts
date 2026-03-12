@@ -1,5 +1,5 @@
 import { reactive, watchEffect } from 'vue';
-import { assert, clone, delay, deserialize, serialize, UPDATE_TRANSACTION, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, delay, deserialize, operations, serialize, UPDATE_TRANSACTION, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { putKnownGroup } from './localStorage';
 
 export interface State {
@@ -68,24 +68,34 @@ export class WebSocketDriver implements Driver {
       } else if (message.type == 'apply') {
         assert(state.data != null, 'invalid apply');
 
-        const next = this.queue.shift();
-        if (next && !isExpected(next, message.op, message.args)) {
-          console.error(`desync detected! rolling back queue of ${this.queue.length + 1} changes`);
+        const op = typeof message.op == 'string'
+          ? operations.get(message.op)
+          : message.op;
 
-          state.data = next.beforeState;
-          this.queue.length = 0;
+        assert(op != null, 'unknown operation');
+
+        const next = this.queue.shift();
+        if (next) {
+          if (!isExpected(next, op, message.args)) {
+            console.error(`desync detected! rolling back queue of ${this.queue.length + 1} changes`);
+
+            this.queue.length = 0;
+            state.data = next.beforeState;
+
+            op.impl(state.data, ...message.args);
+          }
+        } else {
+          op.impl(state.data, ...message.args);
         }
 
         state.isPendingSync = this.queue.length > 0;
-
-        message.op.impl(state.data, ...message.args);
       }
     });
   }
 
   static connect(path: string) {
-    // const url = new URL(path, 'ws://localhost:8081/');
-    const url = new URL(path, 'wss://api.mfro.me/moneysplit/');
+    const base = localStorage.getItem('mfro:moneysplit:server') ?? 'wss://api.mfro.me/moneysplit/';
+    const url = new URL(path, base);
 
     const ws = new WebSocket(url);
 
@@ -115,7 +125,8 @@ export class WebSocketDriver implements Driver {
 
     const message: Message = {
       type: 'apply',
-      op, args,
+      op: op.name,
+      args,
     };
 
     this.ws.send(JSON.stringify(serialize(message)));

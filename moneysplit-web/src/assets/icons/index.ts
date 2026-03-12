@@ -7,7 +7,7 @@ export { default as icon_visibility } from './visibility.svg?raw';
 export { default as icon_visibility_off } from './visibility_off.svg?raw';
 export { default as icon_delete } from './delete.svg?raw';
 export { default as icon_add } from './add.svg?raw';
-export { default as icon_group_add } from './group_add.svg?raw';
+export { default as icon_link } from './link.svg?raw';
 export { default as icon_person_add } from './person_add.svg?raw';
 export { default as icon_check } from './check.svg?raw';
 export { default as icon_copy_all } from './copy_all.svg?raw';

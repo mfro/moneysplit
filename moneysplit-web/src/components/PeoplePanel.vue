@@ -4,11 +4,12 @@ import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
 import { type Driver } from '../driver';
 import Flex from '../ui/Flex.vue';
-import { ADD_PERSON, canRemovePerson, computeSplit, delay, DELETE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
+import { ADD_PERSON, assert, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
 import { localUserName } from '@/localStorage';
 import Balance from '@/ui/Balance.vue';
 import Icon from '@/ui/Icon.vue';
-import { icon_check, icon_copy_all, icon_delete, icon_group_add, icon_person_add } from '@/assets/icons';
+import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/icons';
+import PersonEditor from './PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -28,9 +29,26 @@ function joinGroup() {
   props.driver.apply(ADD_PERSON, { name });
 }
 
-function removePerson(person: Person) {
-  const index = props.group.people.indexOf(person);
-  props.driver.apply(DELETE_PERSON, index);
+const addingMember = shallowRef(false);
+const editingMember = shallowRef<Person>();
+function addPerson(person: Person | null) {
+  if (person) {
+    props.driver.apply(ADD_PERSON, person);
+  }
+
+  addingMember.value = false;
+}
+
+function savePerson(person: Person | null) {
+  assert(editingMember.value !== undefined, 'invalid save transaction');
+
+  if (person) {
+    props.driver.apply(UPDATE_PERSON, person);
+  } else {
+    props.driver.apply(DELETE_PERSON, editingMember.value.id);
+  }
+
+  editingMember.value = undefined;
 }
 
 const balances = computed(() => {
@@ -65,7 +83,7 @@ async function showShareDialog() {
   const fontSize = parseFloat(getComputedStyle(document.body).fontSize);
 
   const image = await toDataURL(location.href, {
-    width: window.innerWidth - fontSize * 3.5, // card padding is 1.25 on each side
+    width: window.innerWidth - fontSize * 4, // card padding is 1.25 on each side
     margin: 0,
   });
 
@@ -76,32 +94,20 @@ async function showShareDialog() {
 <template>
   <Flex column class="gap-2">
     <Flex column class="gap-1">
-      <Flex row align-center class="gap-2 pa-2"
-            v-for="person in group.people">
+      <Flex v-for="person in group.people"
+            row align-center class="gap-2 pa-2 person"
+            @click="editingMember = person">
         <Flex column class="gap-1">
           <span>{{ person.name }}</span>
           <Balance class="balance-preview" :value="balances.get(person.id)!" />
         </Flex>
-
-        <Flex grow />
-
-        <Button v-if="canRemovePerson(group, person.id)"
-                icon="yes" rounded variant="text" size="small"
-                severity="danger"
-                @click="removePerson(person)">
-          <Icon :src="icon_delete" />
-        </Button>
       </Flex>
-
-      <p v-if="!group.people.length" class="empty-state my-4">
-        No members yet
-      </p>
     </Flex>
 
     <Flex class="gap-2" style="align-self: center">
       <Button @click="showShareDialog()">
-        <Icon :src="icon_group_add" />
-        Invite
+        <Icon :src="icon_link" />
+        Share
       </Button>
 
       <template v-if="showJoinButton">
@@ -110,7 +116,29 @@ async function showShareDialog() {
           Join
         </Button>
       </template>
+
+      <template v-else>
+        <Button @click="addingMember = true">
+          <Icon :src="icon_person_add" />
+          Add Member
+        </Button>
+      </template>
     </Flex>
+
+    <Dialog modal header="Add Member" v-model:visible="addingMember"
+            style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="null"
+                    @update:model-value="addPerson" />
+    </Dialog>
+
+    <Dialog modal header="Edit Member" :visible="!!editingMember"
+            @update:visible="editingMember = undefined"
+            style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="editingMember ?? null"
+                    @update:model-value="savePerson" />
+    </Dialog>
 
     <Dialog modal dismissableMask header="Group Invite" :visible="!!qrCode"
             @update:visible="qrCode = undefined">
@@ -137,9 +165,18 @@ async function showShareDialog() {
   white-space: nowrap;
 }
 
-.empty-state {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  text-align: center;
+.person {
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem 0.5rem;
+  border-radius: var(--p-border-radius-md);
+
+  &:hover {
+    background-color: var(--p-primary-200);
+  }
+
+  &:active {
+    background-color: var(--p-primary-300);
+  }
 }
 </style>

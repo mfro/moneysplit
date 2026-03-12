@@ -65,7 +65,7 @@ function removeKnownGroup(group: KnownGroup) {
     <Flex column class="gap-2">
       <template v-for="group in knownGroups">
         <template v-if="isEditing || !group.hidden">
-          <Flex align-center class="known-group px-4"
+          <Flex align-center class="known-group"
                 :class="{ editing: isEditing }"
                 @click="!isEditing && joinGroup(group.token)">
 
@@ -119,17 +119,20 @@ function removeKnownGroup(group: KnownGroup) {
 }
 
 .known-group {
-  user-select: none;
-  height: 2.25rem;
   cursor: pointer;
+  height: 2.25rem;
+  user-select: none;
+  margin: 0 0.5rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: var(--p-border-radius-md);
 
   &:not(.editing) {
     &:hover {
-      background-color: var(--p-button-text-secondary-hover-background);
+      background-color: var(--p-primary-200);
     }
 
     &:active {
-      background-color: var(--p-button-text-secondary-active-background);
+      background-color: var(--p-primary-300);
     }
   }
 }

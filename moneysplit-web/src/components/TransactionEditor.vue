@@ -12,7 +12,7 @@
 
       <InputGroup style="width: calc(50% - 0.25rem)">
         <InputGroupAddon>
-          <Icon :src="icon_attach_money" />
+          <Icon :src="icon_attach_money" style="margin: -100px 0" />
         </InputGroupAddon>
 
         <InputText v-model="costRaw" inputId="price_input"
@@ -25,7 +25,7 @@
     <Flex class="gap-2">
       <InputGroup style="flex: 1 0 0">
         <InputGroupAddon>
-          <Icon :src="icon_event" />
+          <Icon :src="icon_event" style="margin: -100px 0" />
         </InputGroupAddon>
 
         <DatePicker v-model="date" showButtonBar />
@@ -33,7 +33,7 @@
 
       <InputGroup style="flex: 1 0 0">
         <InputGroupAddon>
-          <Icon :src="icon_person" />
+          <Icon :src="icon_person" style="margin: -100px 0" />
         </InputGroupAddon>
 
         <Select :options="props.driver.state.data!.people" optionLabel="name"

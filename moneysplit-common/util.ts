@@ -25,38 +25,3 @@ export function dateEquals(a: Date, b: Date) {
     && a.getMonth() == b.getMonth()
     && a.getDate() == b.getDate()
 }
-
-export class BiMap<T1, T2> {
-  readonly forward = new Map<T1, T2>();
-  readonly backward = new Map<T2, T1>();
-
-  get size() {
-    return this.forward.size;
-  }
-
-  clear() {
-    this.forward.clear();
-    this.backward.clear();
-  }
-
-  set(a: T1, b: T2) {
-    this.forward.set(a, b);
-    this.backward.set(b, a);
-  }
-
-  hasForward(a: T1) {
-    return this.forward.has(a);
-  }
-
-  hasBackward(a: T2) {
-    return this.backward.has(a);
-  }
-
-  getForward(a: T1) {
-    return this.forward.get(a);
-  }
-
-  getBackward(a: T2) {
-    return this.backward.get(a);
-  }
-}

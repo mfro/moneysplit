@@ -3,7 +3,7 @@ import type { WebSocket } from 'ws';
 import sqlite3, { Database } from 'better-sqlite3';
 
 import type { Group, Message } from '../../moneysplit-common';
-import { serialize, deserialize } from '../../moneysplit-common';
+import { serialize, deserialize, operations, assert } from '../../moneysplit-common';
 
 export interface GroupState {
   group: Group;
@@ -102,14 +102,18 @@ export class GroupManager {
     if (message.type !== 'apply') return;
 
     try {
-      // Apply the operation to the server's in-memory state
-      message.op.impl(state.group, ...message.args);
+      const op = typeof message.op == 'string'
+        ? operations.get(message.op)
+        : message.op;
+
+      assert(op != null, 'unknown operation');
+
+      op.impl(state.group, ...message.args);
 
       this.db
         .prepare<[string, string]>('UPDATE groups SET content = ? WHERE token = ?;')
         .run(JSON.stringify(serialize(state.group)), token);
 
-      // Broadcast to all clients (including sender)
       for (const client of state.clients) {
         client.send(raw);
       }

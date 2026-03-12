@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 
@@ -30,7 +31,9 @@ wss.on('connection', (ws, req) => {
     return;
   }
 
-  ws.on('message', (data) => {
+  ws.on('message', async (data) => {
+    await appendFile('data/log.txt', `${token} ${data.toString()}\n`);
+
     manager.handleMessage(token, ws, data.toString());
   });
 

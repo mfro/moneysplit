@@ -76,20 +76,23 @@ const preview = computed(() => {
 <style scoped lang="scss">
 .transaction-item {
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
   user-select: none;
+  margin: 0 0.5rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: var(--p-border-radius-md);
 
   &:hover {
-    background-color: var(--p-button-text-secondary-hover-background);
+    background-color: var(--p-primary-200);
   }
 
   &:active {
-    background-color: var(--p-button-text-secondary-active-background);
+    background-color: var(--p-primary-300);
   }
 }
 
 .transaction-label {
   font-weight: 600;
+  text-overflow: ellipsis;
 }
 
 .transaction-cost {

@@ -2,9 +2,9 @@ $unit: 0.25rem;
 $text-unit: 1rem;
 
 :root {
-  --text-primary: var(--p-slate-700);
-  --text-secondary: var(--p-slate-600);
-  --text-muted: var(--p-slate-500);
+  --text-primary: var(--p-primary-700);
+  --text-secondary: var(--p-primary-600);
+  --text-muted: var(--p-primary-500);
 }
 
 *, *::before, *::after {
@@ -21,7 +21,29 @@ html, body {
 }
 
 #app {
+  height: 100svh;
   max-height: 100svh;
+}
+
+@media (min-width: 40rem) {
+  body {
+    display: flex;
+    justify-content: center;
+    background-color: var(--p-primary-200);
+  }
+
+  #app {
+    width: 40rem;
+    background-color: white;
+  }
+
+  .p-drawer-bottom .p-drawer {
+    max-width: 40rem !important;
+  }
+
+  .p-dialog {
+    max-width: 40rem !important;
+  }
 }
 
 .minimal-card {

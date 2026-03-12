@@ -80,11 +80,12 @@ function saveTransaction(transaction: Transaction | null) {
 
   if (transaction == null) {
     props.driver.apply(DELETE_TRANSACTION, editTransaction.value.id);
-    editTransaction.value = undefined;
   } else {
-    props.driver.apply(UPDATE_TRANSACTION, editTransaction.value.id, transaction);
-    editTransaction.value = undefined;
+    assert(transaction.id == editTransaction.value.id, 'invalid save transaction 2')
+    props.driver.apply(UPDATE_TRANSACTION, transaction);
   }
+
+  editTransaction.value = undefined;
 }
 </script>
 

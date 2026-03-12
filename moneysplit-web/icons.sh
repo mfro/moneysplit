@@ -17,7 +17,7 @@ add_icon visibility
 add_icon visibility_off
 add_icon delete
 add_icon add
-add_icon group_add
+add_icon link
 add_icon person_add
 add_icon check
 add_icon copy_all

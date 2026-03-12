@@ -1,4 +1,4 @@
-import { addConstant, clone } from './serialize';
+import { clone } from './serialize';
 import { assert } from './util';
 
 export interface Group {
@@ -40,13 +40,15 @@ export interface Operation<A extends unknown[] = unknown[]> {
   impl: (group: Group, ...args: A) => void,
 }
 
+export const operations = new Map<string, Operation<any>>();
+
 function define_operation<A extends unknown[]>(name: string, impl: (group: Group, ...args: A) => void): Operation<A> {
   const op = Object.freeze({
     name,
     impl,
   });
 
-  addConstant(op);
+  operations.set(name, op);
 
   return op;
 }
@@ -56,12 +58,25 @@ export const RENAME_GROUP = define_operation('RENAME_GROUP', (group, name: strin
 });
 
 export const ADD_PERSON = define_operation('ADD_PERSON', (group, person: Omit<Person, 'id'>) => {
+  assert(canAddPerson(group, person.name), 'invalid add person');
+
   const id = ++group.nextId;
-  group.people.push({ ...clone(person), id });
+  const name = person.name.trim()
+
+  group.people.push({ id, name });
+});
+
+export const UPDATE_PERSON = define_operation('UPDATE_PERSON', (group, update: Person) => {
+  assert(canUpdatePerson(group, update), 'invalid add person');
+
+  const person = group.people.find(p => p.id == update.id);
+  if (person) {
+    person.name = update.name;
+  }
 });
 
 export const DELETE_PERSON = define_operation('DELETE_PERSON', (group, id: number) => {
-  assert(canRemovePerson(group, id), 'person removal still in transactions')
+  assert(canDeletePerson(group, id), 'person removal still in transactions')
 
   const index = group.people.findIndex(p => p.id == id);
   if (index != -1) {
@@ -74,8 +89,8 @@ export const ADD_TRANSACTION = define_operation('ADD_TRANSACTION', (group, trans
   group.transactions.push({ ...clone(transaction), id });
 });
 
-export const UPDATE_TRANSACTION = define_operation('UPDATE_TRANSACTION', (group, id: number, update: Transaction) => {
-  const index = group.transactions.findIndex(p => p.id == id);
+export const UPDATE_TRANSACTION = define_operation('UPDATE_TRANSACTION', (group, update: Transaction) => {
+  const index = group.transactions.findIndex(p => p.id == update.id);
   if (index != -1) {
     group.transactions[index] = update;
   }
@@ -88,7 +103,17 @@ export const DELETE_TRANSACTION = define_operation('DELETE_TRANSACTION', (group,
   }
 });
 
-export function canRemovePerson(group: Group, id: number) {
+export function canAddPerson(group: Group, name: string) {
+  return !group.people.find(p => p.name == name.trim())
+    && /^[ -~]+$/.test(name);
+}
+
+export function canUpdatePerson(group: Group, person: Person) {
+  return !group.people.find(p => p.name == person.name.trim() && p.id != person.id)
+    && /^[ -~]+$/.test(person.name);
+}
+
+export function canDeletePerson(group: Group, id: number) {
   return !group.transactions
     .some(t => t.payer == id || t.split.participants.some(p => p.person == id));
 }
