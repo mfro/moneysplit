@@ -1,0 +1,17 @@
+export { default as icon_undo } from './undo.svg?raw';
+export { default as icon_save } from './save.svg?raw';
+export { default as icon_chevron_left } from './chevron_left.svg?raw';
+export { default as icon_more_horiz } from './more_horiz.svg?raw';
+export { default as icon_add_notes } from './add_notes.svg?raw';
+export { default as icon_visibility } from './visibility.svg?raw';
+export { default as icon_visibility_off } from './visibility_off.svg?raw';
+export { default as icon_delete } from './delete.svg?raw';
+export { default as icon_add } from './add.svg?raw';
+export { default as icon_group_add } from './group_add.svg?raw';
+export { default as icon_person_add } from './person_add.svg?raw';
+export { default as icon_check } from './check.svg?raw';
+export { default as icon_copy_all } from './copy_all.svg?raw';
+export { default as icon_attach_money } from './attach_money.svg?raw';
+export { default as icon_event } from './event.svg?raw';
+export { default as icon_photo_camera } from './photo_camera.svg?raw';
+export { default as icon_person } from './person.svg?raw';

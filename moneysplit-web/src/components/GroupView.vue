@@ -7,6 +7,8 @@ import { Button, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
 import TransactionEditor from './TransactionEditor.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
+import { icon_add_notes, icon_chevron_left, icon_more_horiz } from '@/assets/icons';
+import Icon from '@/ui/Icon.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -97,7 +99,7 @@ function saveTransaction(transaction: Transaction | null) {
     <Flex row align-center class="gap-2 px-2 py-4 header">
       <Button icon="yes" rounded variant="text" size="small"
               @click="close" style="flex: 0 0 auto">
-        <span class="material-symbols-outlined">chevron_left</span>
+        <Icon :src="icon_chevron_left" />
       </Button>
 
       <Flex column class="gap-1">
@@ -113,7 +115,7 @@ function saveTransaction(transaction: Transaction | null) {
 
       <Button icon="yes" rounded variant="text" size="small"
               @click="isEditing = true" style="flex: 0 0 auto">
-        <span class="material-symbols-outlined">more_horiz</span>
+        <Icon :src="icon_more_horiz" />
       </Button>
     </Flex>
 
@@ -179,14 +181,14 @@ function saveTransaction(transaction: Transaction | null) {
     <Flex row align-center justify-center class="gap-2 add-button-container"
           v-if="group.people.length">
       <Button @click="() => newTransaction = true">
-        <span class="material-symbols-outlined">add_notes</span>
+        <Icon :src="icon_add_notes" />
         Add transaction
       </Button>
     </Flex>
   </Flex>
 
   <Flex grow align-center justify-center v-else>
-    <p class="loading-text">Connecting…</p>
+    <span class="loading-text pa-6">Connecting…</span>
   </Flex>
 </template>
 

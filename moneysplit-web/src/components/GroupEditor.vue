@@ -12,14 +12,14 @@
           <Button icon="yes" rounded variant="text" size="small"
                   severity="secondary"
                   @click="revertName">
-            <span class="material-symbols-outlined">undo</span>
+            <Icon :src="icon_undo" />
           </Button>
 
           <Button icon="yes" rounded variant="text" size="small"
                   severity="primary"
                   @click="saveName"
                   :disabled="!isGroupNameSaveable">
-            <span class="material-symbols-outlined">save</span>
+            <Icon :src="icon_save" />
           </Button>
         </Flex>
       </Flex>
@@ -36,6 +36,8 @@ import type { Driver } from '@/driver';
 import Flex from '@/ui/Flex.vue';
 import { RENAME_GROUP, type Group } from '../../../moneysplit-common';
 import PeoplePanel from './PeoplePanel.vue';
+import { icon_save, icon_undo } from '@/assets/icons';
+import Icon from '@/ui/Icon.vue';
 
 const props = defineProps<{
   driver: Driver,

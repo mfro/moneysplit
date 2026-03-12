@@ -12,10 +12,7 @@
 
       <InputGroup style="width: calc(50% - 0.25rem)">
         <InputGroupAddon>
-          <i class="material-symbols-outlined"
-             style="margin: -1000px 0;">
-            attach_money
-          </i>
+          <Icon :src="icon_attach_money" />
         </InputGroupAddon>
 
         <InputText v-model="costRaw" inputId="price_input"
@@ -28,8 +25,7 @@
     <Flex class="gap-2">
       <InputGroup style="flex: 1 0 0">
         <InputGroupAddon>
-          <i class="material-symbols-outlined"
-             style="margin: -1000px 0">event</i>
+          <Icon :src="icon_event" />
         </InputGroupAddon>
 
         <DatePicker v-model="date" showButtonBar />
@@ -37,8 +33,7 @@
 
       <InputGroup style="flex: 1 0 0">
         <InputGroupAddon>
-          <i class="material-symbols-outlined"
-             style="margin: -1000px 0">person</i>
+          <Icon :src="icon_person" />
         </InputGroupAddon>
 
         <Select :options="props.driver.state.data!.people" optionLabel="name"
@@ -78,7 +73,7 @@
     <Flex row class="gap-2">
       <Button v-if="modelValue" @click="remove"
               severity="danger">
-        <i class="material-symbols-outlined">delete</i>
+        <Icon :src="icon_delete" />
         Delete
       </Button>
 
@@ -86,7 +81,7 @@
 
       <Button @click="save"
               :disabled="!preview">
-        <i class="material-symbols-outlined">save</i>
+        <Icon :src="icon_save" />
         Save
       </Button>
     </Flex>
@@ -101,6 +96,8 @@ import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber,
 import type { Driver } from '@/driver';
 import { formatCost } from '@/util';
 import { localUserName } from '@/localStorage';
+import Icon from '@/ui/Icon.vue';
+import { icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/icons';
 
 const props = defineProps<{
   driver: Driver,

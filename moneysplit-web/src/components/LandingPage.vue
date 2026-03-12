@@ -4,6 +4,9 @@ import { type Driver, OfflineDriver, WebSocketDriver } from '../driver';
 import Flex from '../ui/Flex.vue';
 import { knownGroups, localUserName, removeKnownGroup, toggleKnownGroup } from '@/localStorage';
 import { Button, InputText } from 'primevue';
+import Icon from '@/ui/Icon.vue';
+import { icon_add, icon_delete, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
+
 
 const emit = defineEmits<{
   connect: [driver: Driver];
@@ -38,7 +41,8 @@ const isEditing = shallowRef(false);
     <Flex column align-center>
       <h1 class="landing-title mb-2">Money<span>Split</span></h1>
 
-      <InputText class="mb-6" v-model="localUserName" id="localUserName" placeholder="Put your name here" />
+      <InputText class="mb-6" v-model="localUserName" id="localUserName"
+                 placeholder="Put your name here" />
     </Flex>
 
     <Flex class="px-4 py-2" align-center>
@@ -48,7 +52,7 @@ const isEditing = shallowRef(false);
 
       <Button size="small" variant="text" rounded icon="yes"
               @click="isEditing = !isEditing">
-        <i class="material-symbols-outlined">more_horiz</i>
+        <Icon :src="icon_more_horiz" />
       </Button>
     </Flex>
 
@@ -59,10 +63,12 @@ const isEditing = shallowRef(false);
                 :class="{ editing: isEditing }"
                 @click="!isEditing && joinGroup(group.token)">
 
-            <Flex grow align-center @click="isEditing && toggleKnownGroup(group)">
+            <Flex grow align-center
+                  @click="isEditing && toggleKnownGroup(group)">
               <template v-if="isEditing">
-                 <i class="material-symbols-outlined mr-2" v-if="group.hidden">visibility_off</i>
-                 <i class="material-symbols-outlined mr-2" v-else>visibility</i>
+                <Icon :src="icon_visibility_off" class="mr-2"
+                      v-if="group.hidden" />
+                <Icon :src="icon_visibility" class="mr-2" v-else />
               </template>
 
               <span>{{ group.name }}</span>
@@ -72,7 +78,7 @@ const isEditing = shallowRef(false);
               <Button size="small" variant="text" rounded icon="yes"
                       severity="danger"
                       @click="removeKnownGroup(group)">
-                <i class="material-symbols-outlined">delete</i>
+                <Icon :src="icon_delete" />
               </Button>
             </template>
           </Flex>
@@ -80,7 +86,7 @@ const isEditing = shallowRef(false);
       </template>
 
       <Button @click="createGroup" style="align-self: center" class="mt-4">
-        <i class="material-symbols-outlined">add</i>
+        <Icon :src="icon_add" />
         New Group
       </Button>
     </Flex>
@@ -109,10 +115,9 @@ const isEditing = shallowRef(false);
 .known-group {
   user-select: none;
   height: 2.25rem;
+  cursor: pointer;
 
   &:not(.editing) {
-    cursor: pointer;
-
     &:hover {
       background-color: var(--p-button-text-secondary-hover-background);
     }

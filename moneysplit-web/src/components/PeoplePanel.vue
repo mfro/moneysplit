@@ -7,6 +7,8 @@ import Flex from '../ui/Flex.vue';
 import { ADD_PERSON, computeSplit, delay, DELETE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
 import { localUserName } from '@/localStorage';
 import Balance from '@/ui/Balance.vue';
+import Icon from '@/ui/Icon.vue';
+import { icon_check, icon_copy_all, icon_delete, icon_group_add, icon_person_add } from '@/assets/icons';
 
 const props = defineProps<{
   driver: Driver;
@@ -92,7 +94,7 @@ async function showShareDialog() {
                 icon="yes" rounded variant="text" size="small"
                 severity="danger"
                 @click="removePerson(person)">
-          <span class="material-symbols-outlined">delete</span>
+          <Icon :src="icon_delete" />
         </Button>
       </Flex>
 
@@ -103,13 +105,13 @@ async function showShareDialog() {
 
     <Flex class="gap-2" style="align-self: center">
       <Button @click="showShareDialog()">
-        <span class="material-symbols-outlined">group_add</span>
+        <Icon :src="icon_group_add" />
         Invite
       </Button>
 
       <template v-if="showJoinButton">
         <Button @click="joinGroup()">
-          <i class="material-symbols-outlined">person_add</i>
+          <Icon :src="icon_person_add" />
           Join
         </Button>
       </template>
@@ -122,8 +124,8 @@ async function showShareDialog() {
         <img :src="qrCode" />
 
         <Button @click="copyShareLink()">
-          <i class="material-symbols-outlined" v-if="copySuccessful">check</i>
-          <i class="material-symbols-outlined" v-else>copy_all</i>
+          <Icon :src="icon_check" v-if="copySuccessful" />
+          <Icon :src="icon_copy_all" v-else />
           Copy Link
         </Button>
       </Flex>

@@ -53,7 +53,7 @@ function onClose() {
          @change="onCapture" />
 
   <Button @mouseup="cameraButton?.click()">
-    <i class="material-symbols-outlined">photo_camera</i>
+    <Icon :src="icon_photo_camera" />
   </Button> -->
 </template>
 
