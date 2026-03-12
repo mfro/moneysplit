@@ -7,10 +7,6 @@ import { Button, InputText } from 'primevue';
 import Icon from '@/ui/Icon.vue';
 import { icon_add, icon_delete, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
 
-
-import ms_save from 'material-symbols:save';
-console.log(ms_save);
-
 const emit = defineEmits<{
   connect: [driver: Driver];
 }>();
