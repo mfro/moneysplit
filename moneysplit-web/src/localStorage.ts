@@ -1,4 +1,4 @@
-import { customRef, reactive, toRaw } from 'vue';
+import { customRef, reactive, toRaw, watch, watchEffect } from 'vue';
 import { assert, deserialize, serialize } from '../../moneysplit-common';
 
 export const localStorage = {
@@ -41,12 +41,29 @@ export interface KnownGroup {
   hidden?: boolean;
 }
 
-const KNOWN_GROUPS_KEY = localStorageRef<KnownGroup[]>('mfro:moneysplit:knownGroups');
-export const knownGroups: KnownGroup[] = reactive(KNOWN_GROUPS_KEY.value ?? []);
+function persist<T extends object>(key: string, initializer: () => T) {
+  let raw: T;
+  try {
+    raw = deserialize(JSON.parse(window.localStorage.getItem(key)!));
+  } catch {
+    raw = initializer();
+  }
 
-function saveKnownGroups() {
-  KNOWN_GROUPS_KEY.value = toRaw(knownGroups);
+  const value = reactive(raw);
+
+  watch(value, () => {
+    window.localStorage.setItem(key, JSON.stringify(serialize(toRaw(value))));
+  });
+
+  return value;
 }
+
+export const localUserName = localStorageRef<'string'>('mfro:user-name', true);
+
+export const knownGroups = persist<KnownGroup[]>(
+  'mfro:moneysplit:knownGroups',
+  () => [],
+);
 
 export function putKnownGroup(token: string, name: string) {
   let group = knownGroups.find(g => g.token == token);
@@ -55,21 +72,34 @@ export function putKnownGroup(token: string, name: string) {
   } else {
     knownGroups.push({ token, name })
   }
-
-  saveKnownGroups();
 }
+// const KNOWN_GROUPS = localStorageRef<KnownGroup[]>('mfro:moneysplit:knownGroups', true);
+// export const knownGroups: KnownGroup[] = reactive(KNOWN_GROUPS.value ?? []);
 
-export function toggleKnownGroup(group: KnownGroup) {
-  group.hidden = !group.hidden
-  saveKnownGroups();
-}
+// function saveKnownGroups() {
+//   KNOWN_GROUPS.value = toRaw(knownGroups);
+// }
 
-export function removeKnownGroup(group: KnownGroup) {
-  const index = knownGroups.indexOf(group);
-  assert(index != -1, 'invalid removeKnownGroup');
+// export function putKnownGroup(token: string, name: string) {
+//   let group = knownGroups.find(g => g.token == token);
+//   if (group) {
+//     group.name = name;
+//   } else {
+//     knownGroups.push({ token, name })
+//   }
 
-  knownGroups.splice(index, 1);
-  saveKnownGroups();
-}
+//   saveKnownGroups();
+// }
 
-export const localUserName = localStorageRef<'string'>('mfro:user-name', true);
+// export function toggleKnownGroup(group: KnownGroup) {
+//   group.hidden = !group.hidden
+//   saveKnownGroups();
+// }
+
+// export function removeKnownGroup(group: KnownGroup) {
+//   const index = knownGroups.indexOf(group);
+//   assert(index != -1, 'invalid removeKnownGroup');
+
+//   knownGroups.splice(index, 1);
+//   saveKnownGroups();
+// }

@@ -2,10 +2,11 @@
 import { onMounted, shallowRef } from 'vue';
 import { type Driver, OfflineDriver, WebSocketDriver } from '../driver';
 import Flex from '../ui/Flex.vue';
-import { knownGroups, localUserName, removeKnownGroup, toggleKnownGroup } from '@/localStorage';
+import { knownGroups, localUserName, type KnownGroup } from '@/localStorage';
 import { Button, InputText } from 'primevue';
 import Icon from '@/ui/Icon.vue';
 import { icon_add, icon_delete, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
+import { assert } from '../../../moneysplit-common';
 
 const emit = defineEmits<{
   connect: [driver: Driver];
@@ -33,6 +34,12 @@ onMounted(() => {
 });
 
 const isEditing = shallowRef(false);
+function removeKnownGroup(group: KnownGroup) {
+  const index = knownGroups.indexOf(group);
+  assert(index != -1, 'invalid removeKnownGroup');
+
+  knownGroups.splice(index, 1);
+}
 </script>
 
 <template>
@@ -63,7 +70,7 @@ const isEditing = shallowRef(false);
                 @click="!isEditing && joinGroup(group.token)">
 
             <Flex grow align-center
-                  @click="isEditing && toggleKnownGroup(group)">
+                  @click="isEditing && (group.hidden = !group.hidden)">
               <template v-if="isEditing">
                 <Icon :src="icon_visibility_off" class="mr-2"
                       v-if="group.hidden" />
