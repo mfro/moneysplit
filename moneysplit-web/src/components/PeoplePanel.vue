@@ -16,19 +16,6 @@ const props = defineProps<{
   group: Group;
 }>();
 
-const localUser = computed(() => {
-  return props.group.people.find(p => p.name == localUserName.value);
-});
-
-const showJoinButton = computed(() =>
-  localUserName.value
-  && !localUser.value
-);
-function joinGroup() {
-  const name = localUserName.value!;
-  props.driver.apply(ADD_PERSON, { name });
-}
-
 const addingMember = shallowRef(false);
 const editingMember = shallowRef<Person>();
 function addPerson(person: Person | null) {
@@ -110,19 +97,10 @@ async function showShareDialog() {
         Share
       </Button>
 
-      <template v-if="showJoinButton">
-        <Button @click="joinGroup()">
-          <Icon :src="icon_person_add" />
-          Join
-        </Button>
-      </template>
-
-      <template v-else>
-        <Button @click="addingMember = true">
-          <Icon :src="icon_person_add" />
-          Add Member
-        </Button>
-      </template>
+      <Button @click="addingMember = true">
+        <Icon :src="icon_person_add" />
+        Add Member
+      </Button>
     </Flex>
 
     <Dialog modal header="Add Member" v-model:visible="addingMember"

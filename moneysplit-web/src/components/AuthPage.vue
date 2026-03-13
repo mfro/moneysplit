@@ -88,7 +88,3 @@ async function register() {
   phase.value = 'done';
 }
 </script>
-
-<style scoped lang="scss">
-.auth-page {}
-</style>

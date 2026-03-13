@@ -1,6 +1,9 @@
 <template>
   <Flex column class="gap-2 mb-2">
-    <InputText placeholder="Member Name" v-model="memberName" />
+    <label for="memberName">
+      {{ joining ? 'Enter your name' : 'Member name' }}
+    </label>
+    <InputText v-model="memberName" id="memberName"/>
   </Flex>
 
   <Flex>
@@ -34,6 +37,7 @@ import Icon from '@/ui/Icon.vue';
 const props = defineProps<{
   driver: Driver,
   modelValue: Person | null,
+  joining?: boolean,
 }>();
 
 const emit = defineEmits<{

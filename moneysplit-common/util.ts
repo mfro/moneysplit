@@ -1,5 +1,8 @@
 export function assert(value: boolean, message: string): asserts value {
-  if (!value) throw new Error(message);
+  if (!value) {
+    debugger;
+    throw new Error(message);
+  }
 }
 
 export function delay(ms: number) {

@@ -57,7 +57,7 @@ function persist<T extends object>(key: string, initializer: () => T) {
   return value;
 }
 
-export const localUserName = localStorageRef<'string'>('mfro:user-name', true);
+export const localUserName = localStorageRef<string>('mfro:user-name', true);
 
 export interface AppState {
   newGroups: OfflineGroup[];

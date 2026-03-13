@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue';
+import { computed, ref, shallowRef, watchEffect } from 'vue';
 import { type Driver } from '../driver';
-import { ADD_TRANSACTION, assert, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Transaction } from '../../../moneysplit-common';
+import { ADD_PERSON, ADD_TRANSACTION, assert, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from '../../../moneysplit-common';
 import Flex from '../ui/Flex.vue';
-import { Button, Drawer } from 'primevue';
+import { Button, Dialog, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
 import TransactionEditor from './TransactionEditor.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
-import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz } from '@/assets/icons';
+import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/icons';
 import Icon from '@/ui/Icon.vue';
+import { localUserName } from '@/localStorage';
+import PersonEditor from './PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -19,6 +21,10 @@ const emit = defineEmits<{
 }>();
 
 const group = computed(() => props.driver.state.group);
+
+const localUser = computed(() => {
+  return group.value?.people.find(p => p.name == localUserName.value);
+});
 
 const isEditing = ref(false);
 
@@ -87,10 +93,35 @@ function saveTransaction(transaction: Transaction | null) {
 
   editTransaction.value = undefined;
 }
+
+
+const showJoinButton = computed(() => !localUser.value);
+function joinGroup() {
+  if (!localUserName.value?.trim()) {
+    addingMember.value = true;
+  } else {
+    const name = localUserName.value;
+    props.driver.apply(ADD_PERSON, { name });
+  }
+}
+
+const addingMember = shallowRef(false);
+function addPerson(person: Person | null) {
+  if (person) {
+    props.driver.apply(ADD_PERSON, person);
+
+    if (!localUserName.value?.trim()) {
+      localUserName.value = person.name;
+    }
+  }
+
+  addingMember.value = false;
+}
 </script>
 
 <template>
-  <div class="sync-bar" v-if="driver.state.isPendingSync || driver.state.isConnecting">
+  <div class="sync-bar"
+       v-if="driver.state.isPendingSync || driver.state.isConnecting">
     <span />
     <span />
   </div>
@@ -160,6 +191,14 @@ function saveTransaction(transaction: Transaction | null) {
       </p>
     </Flex>
 
+    <Dialog modal header="Join Group"
+            v-model:visible="addingMember" style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="null"
+                    @update:model-value="addPerson"
+                    joining />
+    </Dialog>
+
     <Drawer position="bottom" header="Add Transaction" style="height: auto"
             v-model:visible="newTransaction">
 
@@ -193,6 +232,11 @@ function saveTransaction(transaction: Transaction | null) {
       <Button @click="() => newTransaction = true">
         <Icon :src="icon_add_notes" />
         Add transaction
+      </Button>
+
+      <Button @click="joinGroup()" v-if="showJoinButton">
+        <Icon :src="icon_person_add" />
+        Join
       </Button>
     </Flex>
   </Flex>
