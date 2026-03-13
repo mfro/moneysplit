@@ -29,12 +29,6 @@ const Noir = definePreset(Aura, {
           hoverColor: '{slate.900}',
           activeColor: '{slate.800}'
         },
-        highlight: {
-          background: '{slate.950}',
-          focusBackground: '{slate.700}',
-          color: '#ffffff',
-          focusColor: '#ffffff'
-        }
       },
       dark: {
         primary: {
@@ -43,12 +37,6 @@ const Noir = definePreset(Aura, {
           hoverColor: '{slate.100}',
           activeColor: '{slate.200}'
         },
-        highlight: {
-          background: 'rgba(250, 250, 250, .16)',
-          focusBackground: 'rgba(250, 250, 250, .24)',
-          color: 'rgba(255,255,255,.87)',
-          focusColor: 'rgba(255,255,255,.87)'
-        }
       }
     }
   }

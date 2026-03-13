@@ -200,7 +200,7 @@ function addPerson(person: Person | null) {
     </Dialog>
 
     <Drawer position="bottom" header="Add Transaction" style="height: auto"
-            v-model:visible="newTransaction">
+            :dismissable="false" v-model:visible="newTransaction">
 
       <TransactionEditor :driver="driver" :model-value="null"
                          @update:model-value="createTransaction" />
@@ -209,7 +209,7 @@ function addPerson(person: Person | null) {
     </Drawer>
 
     <Drawer position="bottom" header="Edit Transaction" style="height: auto"
-            :visible="!!editTransaction"
+            :dismissable="false" :visible="!!editTransaction"
             @update:visible="editTransaction = undefined">
 
       <TransactionEditor :driver="driver" :model-value="editTransaction"

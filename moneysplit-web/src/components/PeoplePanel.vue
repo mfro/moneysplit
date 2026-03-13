@@ -71,7 +71,7 @@ async function showShareDialog() {
 
   const viewportWidth = Math.min(window.innerWidth, 40 * 16);
   const image = await toDataURL(location.href, {
-    width: viewportWidth - fontSize * 4, // card padding is 1.25 on each side
+    width: viewportWidth - fontSize * 4.5, // card padding is 1.25 on each side
     margin: 0,
   });
 
@@ -159,5 +159,9 @@ async function showShareDialog() {
   &:active {
     background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
   }
+}
+
+img {
+  border: 0.5rem solid white;
 }
 </style>

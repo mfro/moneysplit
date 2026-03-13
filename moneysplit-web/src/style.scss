@@ -6,11 +6,11 @@ $text-unit: 1rem;
   --text-secondary: var(--p-text-hover-color);
   --text-muted: var(--p-text-muted-color);
 
-  --positive-color: var(--p-emerald-500);
-  --negative-color: var(--p-red-500);
+  --positive-color: var(--p-emerald-600);
+  --negative-color: var(--p-red-600);
 
-  --accent-color: var(--p-blue-500);
-  --danger-color: var(--p-red-500);
+  --accent-color: var(--p-blue-600);
+  --danger-color: var(--p-red-600);
 }
 
 @media (prefers-color-scheme: dark) {
