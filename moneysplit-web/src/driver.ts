@@ -1,15 +1,14 @@
-import { reactive, watchEffect } from 'vue';
-import { assert, clone, delay, deserialize, operations, serialize, UPDATE_TRANSACTION, type Group, type Message, type Operation } from '../../moneysplit-common';
-import { putKnownGroup } from './localStorage';
+import { reactive } from 'vue';
+import { assert, clone, delay, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { type OfflineApply, type OfflineGroup, appState } from './localStorage';
 
 export interface State {
+  token: string | null;
+  group: Group | null;
+
   isConnecting: boolean;
   isConnected: boolean;
-
   isPendingSync: boolean;
-
-  token: string | null
-  data: Group | null;
 }
 
 export interface Driver {
@@ -19,148 +18,233 @@ export interface Driver {
   close(): void;
 }
 
-interface QueueEntry {
-  op: Operation<any>,
-  args: unknown[],
-  beforeState: Group,
-}
-
-function isExpected(entry: QueueEntry, op: Operation<any>, args: unknown[]) {
-  return op == entry.op
-    && JSON.stringify(serialize(args)) == JSON.stringify(serialize(entry.args));
+export interface Connection {
+  socket: WebSocket;
+  rollbackQueue: Group[];
 }
 
 export class WebSocketDriver implements Driver {
-  readonly queue: QueueEntry[] = [];
+  readonly state: State;
+  private offline: OfflineGroup | null;
+  private connection: Connection | null = null;
 
-  constructor(
-    readonly state: State,
-    readonly ws: WebSocket,
-  ) {
-    ws.addEventListener('close', () => {
-      state.isConnected = false;
-      state.isConnecting = false;
+  private cleanup: (() => void)[] = [];
+
+  private constructor(offline: OfflineGroup | null, token: string | null) {
+    this.offline = offline;
+
+    this.state = reactive({
+      token: token,
+      group: offline?.group ?? null,
+
+      isConnected: false,
+      isConnecting: false,
+      isPendingSync: false,
     });
 
-    ws.addEventListener('error', async (e) => {
+    const onOnline = () => {
+      console.log('online');
+      if (!this.connection) this.startConnection();
+    };
+
+    const onOffline = () => {
+      console.log('offline');
+    };
+
+    const onVisibilityChange = () => {
+      console.log(window.document.visibilityState);
+    };
+
+    window.addEventListener('online', onOnline);
+    this.cleanup.push(() => window.removeEventListener('online', onOnline));
+
+    window.addEventListener('offline', onOffline);
+    this.cleanup.push(() => window.removeEventListener('offline', onOffline));
+
+    window.document.addEventListener('visibilitychange', onVisibilityChange);
+    this.cleanup.push(() => window.removeEventListener('visibilitychange', onVisibilityChange));
+  }
+
+  startConnection() {
+    const base = localStorage.getItem('mfro:moneysplit:server') ?? 'wss://api.mfro.me/moneysplit/';
+    const url = this.state.token
+      ? new URL(`connect?token=${this.state.token}`, base)
+      : new URL(`create`, base);
+
+    const socket = new WebSocket(url);
+    const rollbackQueue: Group[] = [];
+
+    socket.addEventListener('error', async (e) => {
       console.error(e);
-      await delay(1000);
-      location.reload();
     });
 
-    ws.addEventListener('open', () => {
-      state.isConnected = true;
-      state.isConnecting = false;
-
-      watchEffect(() => {
-        if (state.token != null && state.data != null) {
-          putKnownGroup(state.token, state.data.name);
-        }
-      });
+    socket.addEventListener('open', () => {
+      console.log('socket opened');
     });
 
-    ws.addEventListener('message', (e) => {
+    socket.addEventListener('close', () => {
+      console.log('socket closed');
+
+      this.connection = null;
+
+      this.state.isConnecting = false;
+      this.state.isConnected = false;
+      this.state.isPendingSync = false;
+    });
+
+    socket.addEventListener('message', (e) => {
       const message = deserialize(JSON.parse(e.data)) as Message;
 
       if (message.type == 'init') {
-        state.data = message.data;
-        state.token = message.token;
-      } else if (message.type == 'apply') {
-        assert(state.data != null, 'invalid apply');
 
-        const op = typeof message.op == 'string'
-          ? operations.get(message.op)
-          : message.op;
+        this.state.isConnecting = false;
+        this.state.isConnected = true;
 
-        assert(op != null, 'unknown operation');
+        this.state.token = message.token;
+        this.state.group = message.group;
 
-        const next = this.queue.shift();
-        if (next) {
-          if (!isExpected(next, op, message.args)) {
-            console.error(`desync detected! rolling back queue of ${this.queue.length + 1} changes`);
+        if (this.offline) {
+          const redrive = this.offline.queue.slice();
+          this.offline.group = message.group;
+          this.offline.queue = [];
 
-            this.queue.length = 0;
-            state.data = next.beforeState;
+          const index = appState.newGroups.indexOf(this.offline);
+          if (index != -1) appState.newGroups.splice(index, 1);
 
-            op.impl(state.data, ...message.args);
+          appState.knownGroups[this.state.token] = this.offline;
+
+          for (const apply of redrive) {
+            const op = operations.get(apply.op);
+            assert(op != null, 'unknown operation');
+
+            this.apply(op, ...apply.args);
           }
         } else {
-          op.impl(state.data, ...message.args);
+          appState.knownGroups[this.state.token] = this.offline = {
+            hidden: false,
+            group: this.state.group,
+            queue: [],
+          };
         }
 
-        state.isPendingSync = this.queue.length > 0;
+      } else if (message.type == 'apply') {
+
+        const op = operations.get(message.op);
+        assert(op != null, 'unknown operation');
+        assert(this.offline != null, 'invalid apply');
+        assert(this.state.group != null, 'invalid apply');
+
+        const nextPending = this.offline.queue.shift();
+        const nextRollback = rollbackQueue.shift();
+        if (nextPending && nextRollback) {
+          if (!isExpected(nextPending, message.op, message.args)) {
+            console.error(`desync detected! rolling back changes: ${rollbackQueue.length + 1}`);
+
+            this.state.group = nextRollback;
+            this.offline.group = nextRollback;
+            this.offline.queue = [];
+
+            op.impl(this.state.group, ...message.args);
+          }
+        } else {
+          op.impl(this.state.group, ...message.args);
+        }
+
+        this.state.isPendingSync = rollbackQueue.length > 0;
+
       }
     });
-  }
 
-  static connect(path: string) {
-    const base = localStorage.getItem('mfro:moneysplit:server') ?? 'wss://api.mfro.me/moneysplit/';
-    const url = new URL(path, base);
-
-    const ws = new WebSocket(url);
-
-    const state: State = reactive({
-      isConnecting: true,
-      isConnected: false,
-      isPendingSync: false,
-
-      token: null,
-      data: null,
-    });
-
-    return new WebSocketDriver(state, ws);
-  }
-
-  apply<A extends unknown[]>(op: Operation<A>, ...args: A) {
-    assert(this.state.data != null, 'invalid apply');
-
-    const beforeState = clone(this.state.data);
-    this.queue.push({
-      beforeState,
-      op, args,
-    });
-    this.state.isPendingSync = this.queue.length > 0;
-
-    op.impl(this.state.data, ...args);
-
-    const message: Message = {
-      type: 'apply',
-      op: op.name,
-      args,
+    this.connection = {
+      socket,
+      rollbackQueue,
     };
 
-    this.ws.send(JSON.stringify(serialize(message)));
-  }
-
-  close() {
-    this.ws.close();
     this.state.isConnected = false;
-    this.state.data = null;
-    this.state.token = null;
+    this.state.isConnecting = true;
+    this.state.isPendingSync = false;
   }
-}
 
-export class OfflineDriver implements Driver {
-  state: State;
+  apply<A extends unknown[]>(op: Operation<A>, ...args: A): void {
+    assert(this.offline != null, 'invalid apply');
+    assert(this.state.group != null, 'invalid apply');
 
-  constructor() {
-    this.state = reactive({
-      data: {
-        name: 'Offline group',
+    const beforeState = clone(this.state.group);
+
+    op.impl(this.state.group, ...args);
+
+    if (this.connection) {
+      this.connection.rollbackQueue.push(beforeState);
+      this.offline.queue.push({
+        op: op.name,
+        args,
+      });
+
+      const message: Message = {
+        type: 'apply',
+        op: op.name,
+        args,
+      };
+
+      this.connection.socket.send(JSON.stringify(serialize(message)));
+
+      this.state.isPendingSync = true;
+    } else {
+      assert(this.offline != null, 'how apply without state');
+
+      this.offline.queue.push({
+        op: op.name,
+        args: args,
+      });
+    }
+  }
+
+  close(): void {
+    this.connection?.socket.close();
+    for (const fn of this.cleanup) fn();
+  }
+
+  static create() {
+    const offline: OfflineGroup = {
+      hidden: false,
+      group: {
+        name: 'Group split',
         nextId: 1,
         people: [],
         transactions: [],
       },
-      token: 'offline',
-      isConnected: true,
-      isConnecting: false,
-      isPendingSync: false,
-    })
+      queue: [],
+    };
+
+    appState.newGroups.push(offline);
+
+    const driver = new WebSocketDriver(offline, null);
+
+    driver.startConnection();
+
+    return driver;
   }
 
-  apply<A extends unknown[]>(op: Operation<A>, ...args: A): void {
-    op.impl(this.state.data!, ...args);
+  static connectToken(token: string) {
+    const offline = appState.knownGroups[token] ?? null;
+
+    const driver = new WebSocketDriver(offline, token);
+
+    driver.startConnection();
+
+    return driver;
   }
 
-  close(): void { }
+  static openLocal(local: OfflineGroup) {
+    const driver = new WebSocketDriver(local, null);
+
+    driver.startConnection();
+
+    return driver;
+  }
+}
+
+function isExpected(entry: OfflineApply, op: string, args: unknown[]) {
+  return op == entry.op
+    && JSON.stringify(serialize(args)) == JSON.stringify(serialize(entry.args));
 }

@@ -1,5 +1,5 @@
 import { customRef, reactive, toRaw, watch } from 'vue';
-import { deserialize, serialize } from '../../moneysplit-common';
+import { deserialize, serialize, type Group } from '../../moneysplit-common';
 
 export const localStorage = {
   get(name: string, rawString = false) {
@@ -35,12 +35,6 @@ export function localStorageRef<T = unknown>(name: string, rawString = false) {
   }));
 }
 
-export interface KnownGroup {
-  name: string;
-  token: string;
-  hidden?: boolean;
-}
-
 function persist<T extends object>(key: string, initializer: () => T) {
   let raw: T;
   try {
@@ -65,46 +59,26 @@ function persist<T extends object>(key: string, initializer: () => T) {
 
 export const localUserName = localStorageRef<'string'>('mfro:user-name', true);
 
-export const knownGroups = persist<KnownGroup[]>(
-  'mfro:moneysplit:knownGroups',
-  () => [],
-);
-
-export function putKnownGroup(token: string, name: string) {
-  let group = knownGroups.find(g => g.token == token);
-  if (group) {
-    group.name = name;
-  } else {
-    knownGroups.push({ token, name })
-  }
+export interface AppState {
+  newGroups: OfflineGroup[];
+  knownGroups: { [token: string]: OfflineGroup }
 }
-// const KNOWN_GROUPS = localStorageRef<KnownGroup[]>('mfro:moneysplit:knownGroups', true);
-// export const knownGroups: KnownGroup[] = reactive(KNOWN_GROUPS.value ?? []);
 
-// function saveKnownGroups() {
-//   KNOWN_GROUPS.value = toRaw(knownGroups);
-// }
+export interface OfflineGroup {
+  hidden: boolean,
+  group: Group,
+  queue: OfflineApply[],
+}
 
-// export function putKnownGroup(token: string, name: string) {
-//   let group = knownGroups.find(g => g.token == token);
-//   if (group) {
-//     group.name = name;
-//   } else {
-//     knownGroups.push({ token, name })
-//   }
+export interface OfflineApply {
+  op: string,
+  args: unknown[],
+}
 
-//   saveKnownGroups();
-// }
-
-// export function toggleKnownGroup(group: KnownGroup) {
-//   group.hidden = !group.hidden
-//   saveKnownGroups();
-// }
-
-// export function removeKnownGroup(group: KnownGroup) {
-//   const index = knownGroups.indexOf(group);
-//   assert(index != -1, 'invalid removeKnownGroup');
-
-//   knownGroups.splice(index, 1);
-//   saveKnownGroups();
-// }
+export const appState = persist<AppState>(
+  'mfro:moneysplit:state',
+  () => ({
+    newGroups: [],
+    knownGroups: {},
+  }),
+);

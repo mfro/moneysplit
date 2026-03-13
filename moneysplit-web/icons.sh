@@ -25,3 +25,4 @@ add_icon attach_money
 add_icon event
 add_icon photo_camera
 add_icon person
+add_icon cloud_off

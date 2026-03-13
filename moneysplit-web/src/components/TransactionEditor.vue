@@ -36,7 +36,7 @@
           <Icon :src="icon_person" style="margin: -100px 0" />
         </InputGroupAddon>
 
-        <Select :options="props.driver.state.data!.people" optionLabel="name"
+        <Select :options="props.driver.state.group!.people" optionLabel="name"
                 v-model="payer" />
       </InputGroup>
     </Flex>
@@ -120,16 +120,16 @@ const cost = computed(() => {
 const label = ref(props.modelValue?.label ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(
-  props.driver.state.data!.people.find(p => p.id == props.modelValue?.payer)
-  ?? props.driver.state.data?.people.find(p => p.name == localUserName.value)
+  props.driver.state.group!.people.find(p => p.id == props.modelValue?.payer)
+  ?? props.driver.state.group?.people.find(p => p.name == localUserName.value)
   ?? null);
 
-const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants ?? null) ?? props.driver.state.data!.people.map(person => ({
+const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants ?? null) ?? props.driver.state.group!.people.map(person => ({
   person: person.id,
   ratio: 1,
 })));
 
-const availablePeople = computed(() => props.driver.state.data!.people);
+const availablePeople = computed(() => props.driver.state.group!.people);
 
 const preview = computed<Transaction | null>(() => {
   if (payer.value !== null
@@ -138,7 +138,7 @@ const preview = computed<Transaction | null>(() => {
     && label.value
     && participants.value.length > 0) {
     return {
-      id: props.modelValue?.id ?? props.driver.state.data!.nextId,
+      id: props.modelValue?.id ?? props.driver.state.group!.nextId,
       label: label.value,
       cost: cost.value,
       date: date.value,

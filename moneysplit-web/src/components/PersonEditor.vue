@@ -40,13 +40,13 @@ const emit = defineEmits<{
   'update:modelValue': [Person | null],
 }>();
 
-const group = computed(() => props.driver.state.data!);
+const group = computed(() => props.driver.state.group!);
 
 const memberName = shallowRef(props.modelValue?.name ?? '')
 
 const preview = computed<Person | null>(() => {
   return {
-    id: props.modelValue?.id ?? props.driver.state.data!.nextId,
+    id: props.modelValue?.id ?? props.driver.state.group!.nextId,
     name: memberName.value,
   }
 });

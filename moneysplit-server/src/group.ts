@@ -79,7 +79,7 @@ export class GroupManager {
     const initMessage: Message = {
       type: 'init',
       token,
-      data: state.group,
+      group: state.group,
     };
 
     ws.send(JSON.stringify(serialize(initMessage)));
@@ -102,10 +102,7 @@ export class GroupManager {
     if (message.type !== 'apply') return;
 
     try {
-      const op = typeof message.op == 'string'
-        ? operations.get(message.op)
-        : message.op;
-
+      const op = operations.get(message.op);
       assert(op != null, 'unknown operation');
 
       op.impl(state.group, ...message.args);

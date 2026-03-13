@@ -1,45 +1,49 @@
 <script setup lang="ts">
-import { onMounted, shallowRef } from 'vue';
-import { type Driver, OfflineDriver, WebSocketDriver } from '../driver';
-import Flex from '../ui/Flex.vue';
-import { knownGroups, localUserName, type KnownGroup } from '@/localStorage';
+import { computed, onMounted, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
+import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
+import { appState, localUserName, type OfflineGroup } from '@/localStorage';
 import Icon from '@/ui/Icon.vue';
-import { icon_add, icon_delete, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
-import { assert } from '../../../moneysplit-common';
+import { type Driver, WebSocketDriver } from '../driver';
+import Flex from '../ui/Flex.vue';
+
+type KnownGroup = [string | null, OfflineGroup];
 
 const emit = defineEmits<{
   connect: [driver: Driver];
 }>();
 
-function createOfflineGroup() {
-  emit('connect', new OfflineDriver());
-}
-
 function createGroup() {
-  emit('connect', WebSocketDriver.connect('connect'));
+  emit('connect', WebSocketDriver.create());
 }
 
-function joinGroup(token: string) {
-  if (token == 'offline') {
-    emit('connect', new OfflineDriver());
-  } else {
-    emit('connect', WebSocketDriver.connect(`connect?token=${encodeURIComponent(token)}`));
-  }
+function openToken(token: string) {
+  emit('connect', WebSocketDriver.connectToken(token));
+}
+
+function openLocal(group: OfflineGroup) {
+  emit('connect', WebSocketDriver.openLocal(group));
 }
 
 onMounted(() => {
   const token = new URL(location.href).searchParams.get('token');
-  if (token) joinGroup(token);
+  if (token) openToken(token);
 });
 
 const isEditing = shallowRef(false);
-function removeKnownGroup(group: KnownGroup) {
-  const index = knownGroups.indexOf(group);
-  assert(index != -1, 'invalid removeKnownGroup');
 
-  knownGroups.splice(index, 1);
-}
+const allGroups = computed(() => {
+  const list: KnownGroup[] = [
+    ...appState.newGroups
+      .map<KnownGroup>(group => [null, group]),
+
+    ...Object.entries(appState.knownGroups),
+  ];
+
+  list.sort((a, b) => a[1].group.name.localeCompare(b[1].group.name));
+
+  return list;
+});
 </script>
 
 <template>
@@ -63,30 +67,30 @@ function removeKnownGroup(group: KnownGroup) {
     </Flex>
 
     <Flex column class="gap-2">
-      <template v-for="group in knownGroups">
-        <template v-if="isEditing || !group.hidden">
+      <template v-for="[token, known] in allGroups">
+        <template v-if="isEditing || !known.hidden">
           <Flex align-center class="known-group"
                 :class="{ editing: isEditing }"
-                @click="!isEditing && joinGroup(group.token)">
+                @click="!isEditing && (token ? openToken(token) : openLocal(known))">
 
             <Flex grow align-center
-                  @click="isEditing && (group.hidden = !group.hidden)">
+                  @click="isEditing && (known.hidden = !known.hidden)">
               <template v-if="isEditing">
                 <Icon :src="icon_visibility_off" class="mr-2"
-                      v-if="group.hidden" />
+                      v-if="known.hidden" />
                 <Icon :src="icon_visibility" class="mr-2" v-else />
               </template>
 
-              <span>{{ group.name }}</span>
+              <span>{{ known.group.name }}</span>
             </Flex>
 
-            <template v-if="isEditing">
+            <!-- <template v-if="isEditing">
               <Button size="small" variant="text" rounded icon="yes"
                       severity="danger"
-                      @click="removeKnownGroup(group)">
+                      @click="removeKnownGroup(known)">
                 <Icon :src="icon_delete" />
               </Button>
-            </template>
+            </template> -->
           </Flex>
         </template>
       </template>

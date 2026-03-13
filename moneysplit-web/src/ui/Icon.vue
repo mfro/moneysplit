@@ -11,10 +11,11 @@ const props = defineProps<{
 <style lang="scss">
 .icon {
   line-height: 0;
+  vertical-align: center;
 
   svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 24px;
+    height: 24px;
     fill: currentColor;
   }
 }

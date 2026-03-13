@@ -7,7 +7,7 @@ import { Button, Drawer } from 'primevue';
 import GroupEditor from './GroupEditor.vue';
 import TransactionEditor from './TransactionEditor.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
-import { icon_add_notes, icon_chevron_left, icon_more_horiz } from '@/assets/icons';
+import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz } from '@/assets/icons';
 import Icon from '@/ui/Icon.vue';
 
 const props = defineProps<{
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const group = computed(() => props.driver.state.data);
+const group = computed(() => props.driver.state.group);
 
 const isEditing = ref(false);
 
@@ -90,7 +90,7 @@ function saveTransaction(transaction: Transaction | null) {
 </script>
 
 <template>
-  <div class="sync-bar" v-if="driver.state.isPendingSync">
+  <div class="sync-bar" v-if="driver.state.isPendingSync || driver.state.isConnecting">
     <span />
     <span />
   </div>
@@ -103,7 +103,16 @@ function saveTransaction(transaction: Transaction | null) {
       </Button>
 
       <Flex column class="gap-1">
-        <h1 class="group-title" style="display: inline">{{ group.name }}</h1>
+        <span>
+          <template v-if="!driver.state.isConnected">
+            <Icon :src="icon_cloud_off" class="mr-1"
+                  style="color: var(--p-red-500)" />
+          </template>
+
+          <h1 class="group-title" style="display: inline">
+            {{ group.name }}
+          </h1>
+        </span>
 
         <span style="color: var(--text-muted)">
           {{ group.people.length }}
@@ -114,7 +123,8 @@ function saveTransaction(transaction: Transaction | null) {
       <Flex grow />
 
       <Button icon="yes" rounded variant="text" size="small"
-              @click="isEditing = true" style="flex: 0 0 auto">
+              @click="isEditing = true"
+              style="flex: 0 0 auto">
         <Icon :src="icon_more_horiz" />
       </Button>
     </Flex>
