@@ -54,7 +54,9 @@ function define_operation<A extends unknown[]>(name: string, impl: (group: Group
 }
 
 export const RENAME_GROUP = define_operation('RENAME_GROUP', (group, name: string) => {
-  group.name = name;
+  assert(name.length < 1024, 'invalid group name');
+
+  group.name = name.trim();
 });
 
 export const ADD_PERSON = define_operation('ADD_PERSON', (group, person: Omit<Person, 'id'>) => {
@@ -85,11 +87,15 @@ export const DELETE_PERSON = define_operation('DELETE_PERSON', (group, id: numbe
 });
 
 export const ADD_TRANSACTION = define_operation('ADD_TRANSACTION', (group, transaction: Omit<Transaction, 'id'>) => {
+  assert(transaction.label.length < 1024, 'invalid group name');
+
   const id = ++group.nextId;
   group.transactions.push({ ...clone(transaction), id });
 });
 
 export const UPDATE_TRANSACTION = define_operation('UPDATE_TRANSACTION', (group, update: Transaction) => {
+  assert(update.label.length < 1024, 'invalid group name');
+
   const index = group.transactions.findIndex(p => p.id == update.id);
   if (index != -1) {
     group.transactions[index] = update;
@@ -105,12 +111,12 @@ export const DELETE_TRANSACTION = define_operation('DELETE_TRANSACTION', (group,
 
 export function canAddPerson(group: Group, name: string) {
   return !group.people.find(p => p.name == name.trim())
-    && /^[ -~]+$/.test(name);
+    && name.trim().length < 1024;
 }
 
 export function canUpdatePerson(group: Group, person: Person) {
   return !group.people.find(p => p.name == person.name.trim() && p.id != person.id)
-    && /^[ -~]+$/.test(person.name);
+    && person.name.trim().length < 1024;
 }
 
 export function canDeletePerson(group: Group, id: number) {
