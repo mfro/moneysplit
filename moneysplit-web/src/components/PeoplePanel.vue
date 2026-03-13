@@ -152,12 +152,12 @@ async function showShareDialog() {
 
   @media (hover: hover) {
     &:hover {
-      background-color: var(--p-primary-200);
+      background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
     }
   }
 
   &:active {
-    background-color: var(--p-primary-300);
+    background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
   }
 }
 </style>

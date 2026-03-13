@@ -132,7 +132,7 @@ function addPerson(person: Person | null) {
           <template
                     v-if="!driver.state.isConnected && !driver.state.isConnecting">
             <Icon :src="icon_cloud_off" class="mr-1"
-                  style="color: var(--p-red-500)" />
+                  style="color: var(--danger-color)" />
           </template>
 
           <h1 class="group-title" style="display: inline">
@@ -269,12 +269,12 @@ $syncDuration: 4000ms;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--p-primary-200);
+  background-color: var(--p-content-border-color);
 
   > span {
     display: inline-block;
     height: 100%;
-    background-color: var(--p-primary-color);
+    background-color: var(--p-text-muted-color);
     position: absolute;
     animation: $syncDuration sync infinite linear;
   }
@@ -288,7 +288,6 @@ $syncDuration: 4000ms;
   width: 100%;
   min-height: 100svh;
   height: 100svh;
-  background-color: white;
 }
 
 .header {
@@ -330,7 +329,7 @@ $syncDuration: 4000ms;
 
   > button {
     pointer-events: all;
-    box-shadow: 0 0 1rem white, 0 0 1rem white;
+    box-shadow: 0 0 1rem var(--p-content-background), 0 0 1rem var(--p-content-background), 0 0 1rem var(--p-content-background), 0 0 1rem var(--p-content-background);
   }
 }
 </style>

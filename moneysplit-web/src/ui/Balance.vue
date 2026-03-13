@@ -15,11 +15,11 @@ const props = defineProps<{
   font-weight: bold;
 
   &.positive {
-    color: var(--p-emerald-600);
+    color: var(--positive-color);
   }
 
   &.negative {
-    color: var(--p-red-600);
+    color: var(--negative-color);
   }
 }
 </style>
