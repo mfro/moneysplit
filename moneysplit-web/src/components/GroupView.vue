@@ -134,7 +134,7 @@ function addPerson(person: Person | null) {
       </Button>
 
       <Flex column class="gap-1">
-        <span>
+        <Flex align-center>
           <template v-if="!driver.state.isConnected">
             <Icon :src="icon_cloud_off" class="mr-1"
                   style="color: var(--p-red-500)" />
@@ -143,7 +143,7 @@ function addPerson(person: Person | null) {
           <h1 class="group-title" style="display: inline">
             {{ group.name }}
           </h1>
-        </span>
+        </Flex>
 
         <span style="color: var(--text-muted)">
           {{ group.people.length }}
