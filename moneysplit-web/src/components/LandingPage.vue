@@ -131,8 +131,10 @@ const allGroups = computed(() => {
   border-radius: var(--p-border-radius-md);
 
   &:not(.editing) {
-    &:hover {
-      background-color: var(--p-primary-200);
+    @media (hover: hover) {
+      &:hover {
+        background-color: var(--p-primary-200);
+      }
     }
 
     &:active {

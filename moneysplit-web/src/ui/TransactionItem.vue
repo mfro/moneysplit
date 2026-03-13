@@ -81,8 +81,10 @@ const preview = computed(() => {
   padding: 0.5rem 0.5rem;
   border-radius: var(--p-border-radius-md);
 
-  &:hover {
-    background-color: var(--p-primary-200);
+  @media (hover: hover) {
+    &:hover {
+      background-color: var(--p-primary-200);
+    }
   }
 
   &:active {
