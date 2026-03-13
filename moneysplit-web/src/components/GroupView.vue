@@ -129,7 +129,8 @@ function addPerson(person: Person | null) {
 
       <Flex column class="gap-1">
         <Flex align-center>
-          <template v-if="!driver.state.isConnected && !driver.state.isConnecting">
+          <template
+                    v-if="!driver.state.isConnected && !driver.state.isConnecting">
             <Icon :src="icon_cloud_off" class="mr-1"
                   style="color: var(--p-red-500)" />
           </template>
@@ -153,7 +154,8 @@ function addPerson(person: Person | null) {
         <Icon :src="icon_more_horiz" />
       </Button>
 
-      <div class="sync-bar">
+      <div class="sync-bar"
+           v-if="driver.state.isPendingSync || driver.state.isConnecting">
         <span />
         <span />
       </div>
