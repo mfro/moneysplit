@@ -120,12 +120,6 @@ function addPerson(person: Person | null) {
 </script>
 
 <template>
-  <div class="sync-bar"
-       v-if="driver.state.isPendingSync || driver.state.isConnecting">
-    <span />
-    <span />
-  </div>
-
   <Flex column class="group-view" v-if="group">
     <Flex row align-center class="gap-2 px-2 py-4 header">
       <Button icon="yes" rounded variant="text" size="small"
@@ -135,7 +129,7 @@ function addPerson(person: Person | null) {
 
       <Flex column class="gap-1">
         <Flex align-center>
-          <template v-if="!driver.state.isConnected">
+          <template v-if="!driver.state.isConnected && !driver.state.isConnecting">
             <Icon :src="icon_cloud_off" class="mr-1"
                   style="color: var(--p-red-500)" />
           </template>
@@ -158,6 +152,11 @@ function addPerson(person: Person | null) {
               style="flex: 0 0 auto">
         <Icon :src="icon_more_horiz" />
       </Button>
+
+      <div class="sync-bar">
+        <span />
+        <span />
+      </div>
     </Flex>
 
     <Flex column class="gap-2 transactions">
@@ -191,12 +190,11 @@ function addPerson(person: Person | null) {
       </p>
     </Flex>
 
-    <Dialog modal header="Join Group"
-            v-model:visible="addingMember" style="width: calc(100svw - 1.5rem)">
+    <Dialog modal header="Join Group" v-model:visible="addingMember"
+            style="width: calc(100svw - 1.5rem)">
 
       <PersonEditor :driver="driver" :model-value="null"
-                    @update:model-value="addPerson"
-                    joining />
+                    @update:model-value="addPerson" joining />
     </Dialog>
 
     <Drawer position="bottom" header="Add Transaction" style="height: auto"
@@ -263,15 +261,12 @@ $syncDuration: 4000ms;
 
 .sync-bar {
   height: 0.25rem;
-  border-radius: 0.125rem;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
   overflow: hidden;
 
-  position: fixed;
-  top: 0;
-  left: 4rem;
-  right: 4rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: var(--p-primary-200);
 
   > span {
@@ -295,6 +290,7 @@ $syncDuration: 4000ms;
 }
 
 .header {
+  position: relative;
   border-bottom: 1px solid var(--p-content-border-color);
 }
 
