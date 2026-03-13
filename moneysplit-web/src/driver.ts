@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { assert, clone, delay, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { type OfflineApply, type OfflineGroup, appState } from './localStorage';
 
 export interface State {
@@ -43,26 +43,11 @@ export class WebSocketDriver implements Driver {
     });
 
     const onOnline = () => {
-      console.log('online');
       if (!this.connection) this.startConnection();
-    };
-
-    const onOffline = () => {
-      console.log('offline');
-    };
-
-    const onVisibilityChange = () => {
-      console.log(window.document.visibilityState);
     };
 
     window.addEventListener('online', onOnline);
     this.cleanup.push(() => window.removeEventListener('online', onOnline));
-
-    window.addEventListener('offline', onOffline);
-    this.cleanup.push(() => window.removeEventListener('offline', onOffline));
-
-    window.document.addEventListener('visibilitychange', onVisibilityChange);
-    this.cleanup.push(() => window.removeEventListener('visibilitychange', onVisibilityChange));
   }
 
   startConnection() {

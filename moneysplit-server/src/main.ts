@@ -39,7 +39,6 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     manager.removeClient(token, ws);
-    console.log(`Client disconnected from group: ${token}`);
   });
 
   ws.on('error', (err) => {
