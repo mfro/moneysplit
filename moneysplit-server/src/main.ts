@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 
 import { GroupManager } from './group';
+import { CLOSE_REASON_GROUP_NOT_FOUND } from '../../moneysplit-common';
 
 const port = parseInt(process.argv[2]);
 
@@ -19,15 +20,14 @@ wss.on('connection', (ws, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let token = url.searchParams.get('token');
-  if (token == null || !manager.getGroup(token)) {
-    console.log(`Join failed: group ${token} not found`);
+  if (token == null) {
     token = manager.createGroup();
     console.log(`Group created: ${token}`);
   }
 
-  const added = manager.addClient(token, ws);
-  if (!added) {
-    ws.close(4004, 'Group not found');
+  const success = manager.addClient(token, ws);
+  if (!success) {
+    ws.close(4004, CLOSE_REASON_GROUP_NOT_FOUND);
     return;
   }
 

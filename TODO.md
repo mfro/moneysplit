@@ -1,3 +1,5 @@
+- make connection global rather than group-specific
+
 - payment simplification
 
 - sub-cent splitting

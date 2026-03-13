@@ -71,7 +71,7 @@ export class GroupManager {
   }
 
   addClient(token: string, ws: WebSocket): boolean {
-    const state = this.groups.get(token);
+    const state = this.getGroup(token);
     if (!state) return false;
 
     state.clients.add(ws);

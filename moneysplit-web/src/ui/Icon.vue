@@ -1,5 +1,5 @@
 <template>
-  <span class="icon" v-html="src" />
+  <span class="mfro-icon" v-html="src" />
 </template>
 
 <script setup lang="ts">
@@ -9,7 +9,7 @@ const props = defineProps<{
 </script>
 
 <style lang="scss">
-.icon {
+.mfro-icon {
   line-height: 0;
 
   svg {
@@ -17,5 +17,9 @@ const props = defineProps<{
     height: 24px;
     fill: currentColor;
   }
+}
+
+.p-button > .mfro-icon {
+  margin: -1rem 0;
 }
 </style>

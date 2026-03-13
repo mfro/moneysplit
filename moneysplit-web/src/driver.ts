@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { assert, clone, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, CLOSE_REASON_GROUP_NOT_FOUND, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
 import { type OfflineApply, type OfflineGroup, appState } from './localStorage';
 
 export interface State {
@@ -9,6 +9,8 @@ export interface State {
   isConnecting: boolean;
   isConnected: boolean;
   isPendingSync: boolean;
+
+  close_reason: string | null;
 }
 
 export interface Driver {
@@ -42,6 +44,8 @@ export class WebSocketDriver implements Driver {
       isConnected: false,
       isConnecting: false,
       isPendingSync: false,
+
+      close_reason: null,
     });
 
     const onOnline = () => {
@@ -67,18 +71,22 @@ export class WebSocketDriver implements Driver {
       console.error(e);
     });
 
-    socket.addEventListener('open', () => {
-      console.log('socket opened');
+    socket.addEventListener('open', (e) => {
+      console.log('socket opened', e);
     });
 
-    socket.addEventListener('close', () => {
-      console.log('socket closed');
+    socket.addEventListener('close', (e) => {
+      console.log('socket closed', e);
 
       this.connection = null;
 
       this.state.isConnecting = false;
       this.state.isConnected = false;
       this.state.isPendingSync = false;
+
+      if (e.reason == CLOSE_REASON_GROUP_NOT_FOUND) {
+        this.state.close_reason = e.reason;
+      }
     });
 
     socket.addEventListener('message', (e) => {
@@ -152,6 +160,8 @@ export class WebSocketDriver implements Driver {
     this.state.isConnected = false;
     this.state.isConnecting = true;
     this.state.isPendingSync = false;
+
+    this.state.close_reason = null;
   }
 
   apply<A extends unknown[]>(op: Operation<A>, ...args: A): void {
