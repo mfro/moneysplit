@@ -69,8 +69,9 @@ const qrCode = shallowRef<string>();
 async function showShareDialog() {
   const fontSize = parseFloat(getComputedStyle(document.body).fontSize);
 
+  const viewportWidth = Math.min(window.innerWidth, 40 * 16);
   const image = await toDataURL(location.href, {
-    width: window.innerWidth - fontSize * 4, // card padding is 1.25 on each side
+    width: viewportWidth - fontSize * 4, // card padding is 1.25 on each side
     margin: 0,
   });
 
