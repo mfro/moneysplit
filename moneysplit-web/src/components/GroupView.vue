@@ -1,3 +1,132 @@
+<template>
+  <Flex column class="group-view" v-if="group">
+    <Flex row align-center class="gap-2 px-2 py-4 header"
+          :class="{ 'no-border': driver.state.isPendingSync || driver.state.isConnecting }">
+      <div class="sync-bar"
+           v-if="driver.state.isPendingSync || driver.state.isConnecting">
+        <span />
+        <span />
+      </div>
+
+      <Button icon="yes" rounded variant="text" size="small"
+              @click="close" style="flex: 0 0 auto">
+        <Icon :src="icon_chevron_left" />
+      </Button>
+
+      <Flex column class="gap-1">
+        <h1 class="group-title" style="display: inline">
+          {{ group.name }}
+        </h1>
+
+        <Flex align-center>
+          <span style="color: var(--text-muted)">
+            {{ group.people.length }}
+            member{{ group.people.length == 1 ? '' : 's' }}
+          </span>
+
+          <template
+                    v-if="!driver.state.isConnected && !driver.state.isConnecting">
+            <Icon :src="icon_cloud_off" class="ml-2"
+                  style="margin: -100% 0; color: var(--danger-color)"
+                  @click="driver.startConnection()" />
+          </template>
+        </Flex>
+      </Flex>
+
+      <Flex grow />
+
+      <Button icon="yes" rounded variant="text" size="small"
+              @click="isEditing = true"
+              style="flex: 0 0 auto">
+        <Icon :src="icon_more_horiz" />
+      </Button>
+    </Flex>
+
+    <Flex column class="gap-2 transactions">
+      <template v-for="{ date, entries } in schedule">
+        <Flex class="px-3 mt-3">
+          <label class="date-header">
+            {{
+              date.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })
+            }}
+          </label>
+        </Flex>
+        <template v-for="transaction in entries">
+          <TransactionItem :group="group" :transaction="transaction"
+                           @edit="editTransaction = transaction" />
+        </template>
+      </template>
+
+      <div style="margin-top: 6rem" />
+
+      <p v-if="!group.people.length" class="empty-state py-4">
+        This group is empty
+      </p>
+
+      <p v-else-if="!group.transactions.length" class="empty-state py-4">
+        Start spending money
+      </p>
+    </Flex>
+
+    <Dialog modal header="Join Group" v-model:visible="addingMember"
+            style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="null"
+                    @update:model-value="addPerson" joining />
+    </Dialog>
+
+    <Drawer position="bottom" header="Add Transaction" style="height: auto"
+            :dismissable="false" v-model:visible="newTransaction">
+
+      <TransactionEditor :driver="driver" :model-value="null"
+                         @update:model-value="createTransaction" />
+
+      <div style="margin-top: 2rem" />
+    </Drawer>
+
+    <Drawer position="bottom" header="Edit Transaction" style="height: auto"
+            :dismissable="false" :visible="!!editTransaction"
+            @update:visible="editTransaction = undefined">
+
+      <TransactionEditor :driver="driver" :model-value="editTransaction"
+                         @update:model-value="saveTransaction"
+                         v-if="editTransaction" />
+
+      <div style="margin-top: 2rem" />
+    </Drawer>
+
+    <Drawer position="bottom" header="Group Details" style="height: auto"
+            v-model:visible="isEditing">
+
+      <GroupEditor :driver="driver" :model-value="group" />
+
+      <div style="margin-top: 2rem" />
+    </Drawer>
+
+    <Flex row align-center justify-center class="gap-2 add-button-container"
+          v-if="group.people.length">
+      <Button @click="() => newTransaction = true">
+        <Icon :src="icon_add_notes" />
+        Add transaction
+      </Button>
+
+      <Button @click="joinGroup()" v-if="showJoinButton">
+        <Icon :src="icon_person_add" />
+        Join
+      </Button>
+    </Flex>
+  </Flex>
+
+  <Flex grow align-center justify-center v-else>
+    <span class="loading-text pa-6">Connecting…</span>
+  </Flex>
+</template>
+
 <script setup lang="ts">
 import { computed, ref, shallowRef, watchEffect } from 'vue';
 import { type Driver } from '../driver';
@@ -119,133 +248,6 @@ function addPerson(person: Person | null) {
 }
 </script>
 
-<template>
-  <Flex column class="group-view" v-if="group">
-    <Flex row align-center class="gap-2 px-2 py-4 header">
-      <Button icon="yes" rounded variant="text" size="small"
-              @click="close" style="flex: 0 0 auto">
-        <Icon :src="icon_chevron_left" />
-      </Button>
-
-      <Flex column class="gap-1">
-        <Flex align-center>
-          <template
-                    v-if="!driver.state.isConnected && !driver.state.isConnecting">
-            <Icon :src="icon_cloud_off" class="mr-1"
-                  style="color: var(--danger-color)" />
-          </template>
-
-          <h1 class="group-title" style="display: inline">
-            {{ group.name }}
-          </h1>
-        </Flex>
-
-        <span style="color: var(--text-muted)">
-          {{ group.people.length }}
-          member{{ group.people.length == 1 ? '' : 's' }}
-        </span>
-      </Flex>
-
-      <Flex grow />
-
-      <Button icon="yes" rounded variant="text" size="small"
-              @click="isEditing = true"
-              style="flex: 0 0 auto">
-        <Icon :src="icon_more_horiz" />
-      </Button>
-
-      <div class="sync-bar"
-           v-if="driver.state.isPendingSync || driver.state.isConnecting">
-        <span />
-        <span />
-      </div>
-    </Flex>
-
-    <Flex column class="gap-2 transactions">
-      <template v-for="{ date, entries } in schedule">
-        <Flex class="px-3 mt-3">
-          <label class="date-header">
-            {{
-              date.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })
-            }}
-          </label>
-        </Flex>
-        <template v-for="transaction in entries">
-          <TransactionItem :group="group" :transaction="transaction"
-                           @edit="editTransaction = transaction" />
-        </template>
-      </template>
-
-      <div style="margin-top: 6rem" />
-
-      <p v-if="!group.people.length" class="empty-state py-4">
-        This group is empty
-      </p>
-
-      <p v-else-if="!group.transactions.length" class="empty-state py-4">
-        Start spending money
-      </p>
-    </Flex>
-
-    <Dialog modal header="Join Group" v-model:visible="addingMember"
-            style="width: calc(100svw - 1.5rem)">
-
-      <PersonEditor :driver="driver" :model-value="null"
-                    @update:model-value="addPerson" joining />
-    </Dialog>
-
-    <Drawer position="bottom" header="Add Transaction" style="height: auto"
-            :dismissable="false" v-model:visible="newTransaction">
-
-      <TransactionEditor :driver="driver" :model-value="null"
-                         @update:model-value="createTransaction" />
-
-      <div style="margin-top: 2rem" />
-    </Drawer>
-
-    <Drawer position="bottom" header="Edit Transaction" style="height: auto"
-            :dismissable="false" :visible="!!editTransaction"
-            @update:visible="editTransaction = undefined">
-
-      <TransactionEditor :driver="driver" :model-value="editTransaction"
-                         @update:model-value="saveTransaction"
-                         v-if="editTransaction" />
-
-      <div style="margin-top: 2rem" />
-    </Drawer>
-
-    <Drawer position="bottom" header="Group Details" style="height: auto"
-            v-model:visible="isEditing">
-
-      <GroupEditor :driver="driver" :model-value="group" />
-
-      <div style="margin-top: 2rem" />
-    </Drawer>
-
-    <Flex row align-center justify-center class="gap-2 add-button-container"
-          v-if="group.people.length">
-      <Button @click="() => newTransaction = true">
-        <Icon :src="icon_add_notes" />
-        Add transaction
-      </Button>
-
-      <Button @click="joinGroup()" v-if="showJoinButton">
-        <Icon :src="icon_person_add" />
-        Join
-      </Button>
-    </Flex>
-  </Flex>
-
-  <Flex grow align-center justify-center v-else>
-    <span class="loading-text pa-6">Connecting…</span>
-  </Flex>
-</template>
-
 <style scoped lang="scss">
 $syncDuration: 4000ms;
 
@@ -293,6 +295,10 @@ $syncDuration: 4000ms;
 .header {
   position: relative;
   border-bottom: 1px solid var(--p-content-border-color);
+
+  &.no-border {
+    border: none;
+  }
 }
 
 .group-title {

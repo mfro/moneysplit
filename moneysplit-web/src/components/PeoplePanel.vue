@@ -1,3 +1,59 @@
+<template>
+  <Flex column class="gap-2">
+    <Flex column class="gap-1">
+      <Flex v-for="person in group.people"
+            row align-center class="gap-2 pa-2 person"
+            @click="editingMember = person">
+        <Flex column class="gap-1">
+          <span>{{ person.name }}</span>
+          <Balance class="balance-preview" :value="balances.get(person.id)!" />
+        </Flex>
+      </Flex>
+    </Flex>
+
+    <Flex class="gap-2" style="align-self: center">
+      <Button @click="showShareDialog()">
+        <Icon :src="icon_link" />
+        Share
+      </Button>
+
+      <Button @click="addingMember = true">
+        <Icon :src="icon_person_add" />
+        Add Member
+      </Button>
+    </Flex>
+
+    <Dialog modal header="Add Member" v-model:visible="addingMember"
+            style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="null"
+                    @update:model-value="addPerson" />
+    </Dialog>
+
+    <Dialog modal header="Edit Member" :visible="!!editingMember"
+            @update:visible="editingMember = undefined"
+            style="width: calc(100svw - 1.5rem)">
+
+      <PersonEditor :driver="driver" :model-value="editingMember ?? null"
+                    @update:model-value="savePerson" />
+    </Dialog>
+
+    <Dialog modal dismissableMask header="Group Invite" :visible="!!qrCode"
+            @update:visible="qrCode = undefined">
+
+      <Flex column align-center class="gap-4">
+        <img :src="qrCode" />
+
+        <Button @click="copyShareLink()">
+          <Icon :src="icon_check" v-if="copySuccessful" />
+          <Icon :src="icon_copy_all" v-else />
+          Copy Link
+        </Button>
+      </Flex>
+    </Dialog>
+  </Flex>
+</template>
+
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue';
 import { Button, Dialog } from 'primevue';
@@ -5,7 +61,6 @@ import { toDataURL } from 'qrcode';
 import { type Driver } from '../driver';
 import Flex from '../ui/Flex.vue';
 import { ADD_PERSON, assert, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
-import { localUserName } from '@/localStorage';
 import Balance from '@/ui/Balance.vue';
 import Icon from '@/ui/Icon.vue';
 import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/icons';
@@ -78,62 +133,6 @@ async function showShareDialog() {
   qrCode.value = image;
 }
 </script>
-
-<template>
-  <Flex column class="gap-2">
-    <Flex column class="gap-1">
-      <Flex v-for="person in group.people"
-            row align-center class="gap-2 pa-2 person"
-            @click="editingMember = person">
-        <Flex column class="gap-1">
-          <span>{{ person.name }}</span>
-          <Balance class="balance-preview" :value="balances.get(person.id)!" />
-        </Flex>
-      </Flex>
-    </Flex>
-
-    <Flex class="gap-2" style="align-self: center">
-      <Button @click="showShareDialog()">
-        <Icon :src="icon_link" />
-        Share
-      </Button>
-
-      <Button @click="addingMember = true">
-        <Icon :src="icon_person_add" />
-        Add Member
-      </Button>
-    </Flex>
-
-    <Dialog modal header="Add Member" v-model:visible="addingMember"
-            style="width: calc(100svw - 1.5rem)">
-
-      <PersonEditor :driver="driver" :model-value="null"
-                    @update:model-value="addPerson" />
-    </Dialog>
-
-    <Dialog modal header="Edit Member" :visible="!!editingMember"
-            @update:visible="editingMember = undefined"
-            style="width: calc(100svw - 1.5rem)">
-
-      <PersonEditor :driver="driver" :model-value="editingMember ?? null"
-                    @update:model-value="savePerson" />
-    </Dialog>
-
-    <Dialog modal dismissableMask header="Group Invite" :visible="!!qrCode"
-            @update:visible="qrCode = undefined">
-
-      <Flex column align-center class="gap-4">
-        <img :src="qrCode" />
-
-        <Button @click="copyShareLink()">
-          <Icon :src="icon_check" v-if="copySuccessful" />
-          <Icon :src="icon_copy_all" v-else />
-          Copy Link
-        </Button>
-      </Flex>
-    </Dialog>
-  </Flex>
-</template>
 
 <style scoped lang="scss">
 .balance-preview {

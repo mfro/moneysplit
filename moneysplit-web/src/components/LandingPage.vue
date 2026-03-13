@@ -1,51 +1,3 @@
-<script setup lang="ts">
-import { computed, onMounted, shallowRef } from 'vue';
-import { Button, InputText } from 'primevue';
-import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
-import { appState, localUserName, type OfflineGroup } from '@/localStorage';
-import Icon from '@/ui/Icon.vue';
-import { type Driver, WebSocketDriver } from '../driver';
-import Flex from '../ui/Flex.vue';
-
-type KnownGroup = [string | null, OfflineGroup];
-
-const emit = defineEmits<{
-  connect: [driver: Driver];
-}>();
-
-function createGroup() {
-  emit('connect', WebSocketDriver.create());
-}
-
-function openToken(token: string) {
-  emit('connect', WebSocketDriver.connectToken(token));
-}
-
-function openLocal(group: OfflineGroup) {
-  emit('connect', WebSocketDriver.openLocal(group));
-}
-
-onMounted(() => {
-  const token = new URL(location.href).searchParams.get('token');
-  if (token) openToken(token);
-});
-
-const isEditing = shallowRef(false);
-
-const allGroups = computed(() => {
-  const list: KnownGroup[] = [
-    ...appState.newGroups
-      .map<KnownGroup>(group => [null, group]),
-
-    ...Object.entries(appState.knownGroups),
-  ];
-
-  list.sort((a, b) => a[1].group.name.localeCompare(b[1].group.name));
-
-  return list;
-});
-</script>
-
 <template>
   <Flex column class="landing-content py-6">
     <Flex column align-center>
@@ -102,6 +54,54 @@ const allGroups = computed(() => {
     </Flex>
   </Flex>
 </template>
+
+<script setup lang="ts">
+import { computed, onMounted, shallowRef } from 'vue';
+import { Button, InputText } from 'primevue';
+import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
+import { appState, localUserName, type OfflineGroup } from '@/localStorage';
+import Icon from '@/ui/Icon.vue';
+import { type Driver, WebSocketDriver } from '../driver';
+import Flex from '../ui/Flex.vue';
+
+type KnownGroup = [string | null, OfflineGroup];
+
+const emit = defineEmits<{
+  connect: [driver: Driver];
+}>();
+
+function createGroup() {
+  emit('connect', WebSocketDriver.create());
+}
+
+function openToken(token: string) {
+  emit('connect', WebSocketDriver.connectToken(token));
+}
+
+function openLocal(group: OfflineGroup) {
+  emit('connect', WebSocketDriver.openLocal(group));
+}
+
+onMounted(() => {
+  const token = new URL(location.href).searchParams.get('token');
+  if (token) openToken(token);
+});
+
+const isEditing = shallowRef(false);
+
+const allGroups = computed(() => {
+  const list: KnownGroup[] = [
+    ...appState.newGroups
+      .map<KnownGroup>(group => [null, group]),
+
+    ...Object.entries(appState.knownGroups),
+  ];
+
+  list.sort((a, b) => a[1].group.name.localeCompare(b[1].group.name));
+
+  return list;
+});
+</script>
 
 <style scoped lang="scss">
 .landing-content {

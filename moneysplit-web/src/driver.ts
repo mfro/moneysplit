@@ -14,6 +14,8 @@ export interface State {
 export interface Driver {
   readonly state: State;
 
+  startConnection(): void;
+
   apply<A extends unknown[]>(op: Operation<A>, ...args: A): void;
   close(): void;
 }
@@ -51,6 +53,8 @@ export class WebSocketDriver implements Driver {
   }
 
   startConnection() {
+    if (this.connection) return;
+
     const base = localStorage.getItem('mfro:moneysplit:server') ?? 'wss://api.mfro.me/moneysplit/';
     const url = this.state.token
       ? new URL(`connect?token=${this.state.token}`, base)

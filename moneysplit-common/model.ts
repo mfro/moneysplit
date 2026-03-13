@@ -54,7 +54,7 @@ function define_operation<A extends unknown[]>(name: string, impl: (group: Group
 }
 
 export const RENAME_GROUP = define_operation('RENAME_GROUP', (group, name: string) => {
-  assert(name.length < 1024, 'invalid group name');
+  assert(name.length > 0 && name.length < 1024, 'invalid group name');
 
   group.name = name.trim();
 });
@@ -111,12 +111,12 @@ export const DELETE_TRANSACTION = define_operation('DELETE_TRANSACTION', (group,
 
 export function canAddPerson(group: Group, name: string) {
   return !group.people.find(p => p.name == name.trim())
-    && name.trim().length < 1024;
+    && name.trim().length > 0 && name.trim().length < 1024;
 }
 
 export function canUpdatePerson(group: Group, person: Person) {
   return !group.people.find(p => p.name == person.name.trim() && p.id != person.id)
-    && person.name.trim().length < 1024;
+    && person.name.trim().length > 0 && person.name.trim().length < 1024;
 }
 
 export function canDeletePerson(group: Group, id: number) {
