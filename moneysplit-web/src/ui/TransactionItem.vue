@@ -2,30 +2,34 @@
   <Flex align-center class="gap-2 transaction-item"
         @click="emit('edit')">
 
-    <Flex column align-start class="gap-1">
-      <span class="transaction-label">
-        {{ transaction.label ?? 'Payment' }}
-      </span>
+    <template v-if="transaction.type == 'expense'">
+
+      <Flex column align-start class="gap-1">
+        <span class="transaction-label">
+          {{ transaction.label ?? '' }}
+        </span>
+        <span class="transaction-split">
+          {{ summary }}
+        </span>
+      </Flex>
+
+      <Flex grow />
+
+      <Flex column align-end class="gap-1">
+        <span class="transaction-cost">
+          {{ formatCost(transaction.cost) }}
+        </span>
+        <template v-if="preview">
+          <Balance :value="preview" class="transaction-preview" />
+        </template>
+      </Flex>
+    </template>
+
+    <template v-else>
       <span class="transaction-split">
         {{ summary }}
       </span>
-    </Flex>
-
-    <Flex grow />
-
-    <Flex column align-end class="gap-1">
-      <span class="transaction-cost">
-        <template v-if="transaction.type == 'expense'">
-          {{ formatCost(transaction.cost) }}
-        </template>
-        <template v-else-if="transaction.type == 'exchange'">
-          {{ formatCost(transaction.value) }}
-        </template>
-      </span>
-      <template v-if="preview">
-        <Balance :value="preview" class="transaction-preview" />
-      </template>
-    </Flex>
+    </template>
   </Flex>
 </template>
 
@@ -65,7 +69,7 @@ const summary = computed(() => {
     const payee = props.group.people.find(p => p.id === transaction.payee);
     assert(!!payee, 'payee not found');
 
-    return `${payer.name} paid ${payee.name}`;
+    return `${payer.name} paid ${payee.name} ${formatCost(transaction.value)}`;
   }
 });
 
@@ -89,13 +93,7 @@ const preview = computed(() => {
 
     return paid - portion;
   } else if (props.transaction.type == 'exchange') {
-    if (props.transaction.payer == localUser.id) {
-      return props.transaction.value;
-    } else if (props.transaction.payee) {
-      return -props.transaction.value;
-    } else {
-      return null;
-    }
+    return null;
   }
 });
 </script>
