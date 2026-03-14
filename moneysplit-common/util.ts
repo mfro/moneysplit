@@ -5,6 +5,10 @@ export function assert(value: boolean, message: string): asserts value {
   }
 }
 
+export function never(_: never): never {
+  throw new Error('never');
+}
+
 export function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

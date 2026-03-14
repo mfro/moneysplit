@@ -16,3 +16,4 @@ export { default as icon_event } from './event.svg?raw';
 export { default as icon_photo_camera } from './photo_camera.svg?raw';
 export { default as icon_person } from './person.svg?raw';
 export { default as icon_cloud_off } from './cloud_off.svg?raw';
+export { default as icon_arrow_downward } from './arrow_downward.svg?raw';

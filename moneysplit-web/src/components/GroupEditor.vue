@@ -1,5 +1,5 @@
 <template>
-  <Flex column class="gap-2">
+  <Flex column class="gap-2" style="max-height: calc(100svh - 11rem); overflow: hidden;">
     <Flex column class="gap-2">
       <label for="groupName">Group name</label>
 

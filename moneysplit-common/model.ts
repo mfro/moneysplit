@@ -11,13 +11,26 @@ export interface Person {
   name: string;
 }
 
-export interface Transaction {
+export type Transaction =
+  | { type: 'expense' } & Expense
+  | { type: 'exchange' } & Exchange
+
+export interface Expense {
   id: number;
   label: string;
   cost: number; // cents
   date: Date;
   payer: number;
   split: Split;
+}
+
+export interface Exchange {
+  id: number;
+  label: string | null;
+  value: number;
+  date: Date;
+  payer: number;
+  payee: number;
 }
 
 export type Split =

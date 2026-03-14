@@ -1,4 +1,4 @@
-import { assert } from './util';
+import { assert, never } from './util';
 import { clone } from './serialize';
 import type { Group, Person, Transaction, Split } from './model';
 
@@ -54,14 +54,14 @@ export const DELETE_PERSON = define('DELETE_PERSON', (group, id: number) => {
 });
 
 export const ADD_TRANSACTION = define('ADD_TRANSACTION', (group, transaction: Omit<Transaction, 'id'>) => {
-  assert(transaction.label.length < 1024, 'invalid group name');
+  assert(isValidTransaction(transaction as Transaction), 'invalid group name');
 
   const id = ++group.nextId;
-  group.transactions.push({ ...clone(transaction), id });
+  group.transactions.push({ ...clone(transaction), id } as Transaction);
 });
 
 export const UPDATE_TRANSACTION = define('UPDATE_TRANSACTION', (group, update: Transaction) => {
-  assert(update.label.length < 1024, 'invalid group name');
+  assert(isValidTransaction(update), 'invalid group name');
 
   const index = group.transactions.findIndex(p => p.id === update.id);
   if (index !== -1) {
@@ -87,8 +87,29 @@ export function canUpdatePerson(group: Group, person: Person) {
 }
 
 export function canDeletePerson(group: Group, id: number) {
-  return !group.transactions
-    .some(t => t.payer === id || t.split.participants.some(p => p.person === id));
+  return !group.transactions.some(t => isInvolved(t, id));
+}
+
+export function isInvolved(transaction: Transaction, person: number) {
+  if (transaction.type === 'expense') {
+    return transaction.payer === person || transaction.split.participants.some(p => p.person === person)
+  } else if (transaction.type === 'exchange') {
+    return transaction.payer === person || transaction.payee === person;
+  } else {
+    never(transaction);
+  }
+}
+
+export function isValidTransaction(transaction: Transaction) {
+  if (transaction.type === 'expense') {
+    if (transaction.label.length >= 1024 || transaction.label.length === 0)
+      return false;
+  } else if (transaction.type === 'exchange') {
+    if (transaction.label !== null && (transaction.label.length >= 1024 || transaction.label.length === 0))
+      return false;
+  }
+
+  return true;
 }
 
 export function computeSplit(cost: number, split: Split) {

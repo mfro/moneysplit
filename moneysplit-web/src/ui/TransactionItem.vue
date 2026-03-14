@@ -4,7 +4,7 @@
 
     <Flex column align-start class="gap-1">
       <span class="transaction-label">
-        {{ transaction.label }}
+        {{ transaction.label ?? 'Payment' }}
       </span>
       <span class="transaction-split">
         {{ summary }}
@@ -15,7 +15,12 @@
 
     <Flex column align-end class="gap-1">
       <span class="transaction-cost">
-        {{ formatCost(transaction.cost) }}
+        <template v-if="transaction.type == 'expense'">
+          {{ formatCost(transaction.cost) }}
+        </template>
+        <template v-else-if="transaction.type == 'exchange'">
+          {{ formatCost(transaction.value) }}
+        </template>
       </span>
       <template v-if="preview">
         <Balance :value="preview" class="transaction-preview" />
@@ -34,7 +39,7 @@ import Balance from './Balance.vue';
 
 const props = defineProps<{
   group: Group,
-  transaction: Transaction
+  transaction: Transaction,
 }>();
 
 const emit = defineEmits<{
@@ -42,13 +47,25 @@ const emit = defineEmits<{
 }>();
 
 const summary = computed(() => {
-  const payer = props.group.people.find(p => p.id === props.transaction.payer);
-  assert(!!payer, 'payer not found');
+  if (props.transaction.type == 'expense') {
+    const payer = props.group.people.find(p => p.id === props.transaction.payer);
+    assert(!!payer, 'payer not found');
 
-  if (props.transaction.cost < 0) {
-    return `Income to ${payer.name}`;
-  } else {
-    return `Paid by ${payer.name}`;
+    if (props.transaction.cost < 0) {
+      return `Income to ${payer.name}`;
+    } else {
+      return `Paid by ${payer.name}`;
+    }
+  } else if (props.transaction.type == 'exchange') {
+    const transaction = props.transaction;
+
+    const payer = props.group.people.find(p => p.id === transaction.payer);
+    assert(!!payer, 'payer not found');
+
+    const payee = props.group.people.find(p => p.id === transaction.payee);
+    assert(!!payee, 'payee not found');
+
+    return `${payer.name} paid ${payee.name}`;
   }
 });
 
@@ -56,40 +73,41 @@ const preview = computed(() => {
   const localUser = props.group.people.find(p => p.name === localUserName.value);
   if (!localUser) return null;
 
-  const split = computeSplit(props.transaction.cost, props.transaction.split);
-  const index = props.transaction.split.participants.findIndex(p => p.person === localUser.id)
+  if (props.transaction.type == 'expense') {
+    const split = computeSplit(props.transaction.cost, props.transaction.split);
+    const index = props.transaction.split.participants.findIndex(p => p.person === localUser.id)
 
-  const paid = props.transaction.payer === localUser.id
-    ? props.transaction.cost
-    : 0;
+    const paid = props.transaction.payer === localUser.id
+      ? props.transaction.cost
+      : 0;
 
-  const portion = index === -1
-    ? 0
-    : split[index]!;
+    const portion = index === -1
+      ? 0
+      : split[index]!;
 
-  if (paid === portion) return null;
+    if (paid === portion) return null;
 
-  return paid - portion;
+    return paid - portion;
+  } else if (props.transaction.type == 'exchange') {
+    if (props.transaction.payer == localUser.id) {
+      return props.transaction.value;
+    } else if (props.transaction.payee) {
+      return -props.transaction.value;
+    } else {
+      return null;
+    }
+  }
 });
 </script>
 
 <style scoped lang="scss">
+@use "@/common.scss" as *;
+
 .transaction-item {
-  cursor: pointer;
-  user-select: none;
+  @include interactive-list-item;
   margin: 0 0.5rem;
   padding: 0.5rem 0.5rem;
   border-radius: var(--p-border-radius-md);
-
-  @media (hover: hover) {
-    &:hover {
-      background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
-    }
-  }
-
-  &:active {
-    background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
-  }
 }
 
 .transaction-label {

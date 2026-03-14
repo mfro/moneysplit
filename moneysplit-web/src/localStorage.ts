@@ -1,5 +1,5 @@
 import { customRef, reactive, toRaw, watch } from 'vue';
-import { deserialize, serialize, type Group } from 'moneysplit-common';
+import { deserialize, doMigrations, serialize, VERSION, type Group } from 'moneysplit-common';
 
 export const localStorage = {
   get(name: string, rawString = false) {
@@ -60,6 +60,7 @@ function persist<T extends object>(key: string, initializer: () => T) {
 export const localUserName = localStorageRef<string>('mfro:user-name', true);
 
 export interface AppState {
+  version: number,
   newGroups: OfflineGroup[];
   knownGroups: { [token: string]: OfflineGroup }
 }
@@ -78,7 +79,14 @@ export interface OfflineApply {
 export const appState = persist<AppState>(
   'mfro:moneysplit:state',
   () => ({
+    version: VERSION,
     newGroups: [],
     knownGroups: {},
   }),
 );
+
+for (const entry of [...appState.newGroups, ...Object.values(appState.knownGroups)]) {
+  doMigrations(appState.version ?? 0, entry.group);
+}
+
+appState.version = VERSION;

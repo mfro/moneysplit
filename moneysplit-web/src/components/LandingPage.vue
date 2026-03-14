@@ -104,6 +104,8 @@ const allGroups = computed(() => {
 </script>
 
 <style scoped lang="scss">
+@use "@/common.scss" as *;
+
 .landing-content {
   width: 100%;
 }
@@ -123,23 +125,13 @@ const allGroups = computed(() => {
 }
 
 .known-group {
-  cursor: pointer;
   height: 2.25rem;
-  user-select: none;
   margin: 0 0.5rem;
   padding: 0.5rem 0.5rem;
   border-radius: var(--p-border-radius-md);
 
   &:not(.editing) {
-    @media (hover: hover) {
-      &:hover {
-        background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
-      }
-    }
-
-    &:active {
-      background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
-    }
+    @include interactive-list-item;
   }
 }
 </style>

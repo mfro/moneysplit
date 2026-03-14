@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { assert, clone, CLOSE_REASON_GROUP_NOT_FOUND, deserialize, newGroup, operations, serialize, type Group, type Message, type Operation } from 'moneysplit-common';
+import { assert, clone, CLOSE_REASON_GROUP_NOT_FOUND, deserialize, newGroup, operations, serialize, VERSION, type Group, type Message, type Operation } from 'moneysplit-common';
 import { type OfflineApply, type OfflineGroup, appState } from './localStorage';
 
 export interface State {
@@ -60,9 +60,13 @@ export class WebSocketDriver implements Driver {
     if (this.connection) return;
 
     const base = localStorage.getItem('mfro:moneysplit:server') ?? 'wss://api.mfro.me/moneysplit/';
-    const url = this.state.token
-      ? new URL(`connect?token=${this.state.token}`, base)
-      : new URL(`create`, base);
+    const url = new URL(`connect`, base);
+
+    url.searchParams.set('version', VERSION.toString());
+
+    if (this.state.token) {
+      url.searchParams.set('token', this.state.token);
+    }
 
     const socket = new WebSocket(url);
     const rollbackQueue: Group[] = [];

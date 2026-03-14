@@ -26,3 +26,4 @@ add_icon event
 add_icon photo_camera
 add_icon person
 add_icon cloud_off
+add_icon arrow_downward

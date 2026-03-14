@@ -93,8 +93,8 @@
                       @update:model-value="addPerson" joining />
       </Dialog>
 
-      <Drawer position="bottom" header="Add Transaction" style="height: auto"
-              :dismissable="false" v-model:visible="newTransaction">
+      <Drawer position="bottom" header="Add Transaction" :dismissable="false"
+              v-model:visible="newTransaction">
 
         <TransactionEditor :driver="driver" :model-value="null"
                            @update:model-value="createTransaction" />
@@ -102,8 +102,8 @@
         <div style="margin-top: 2rem" />
       </Drawer>
 
-      <Drawer position="bottom" header="Edit Transaction" style="height: auto"
-              :dismissable="false" :visible="!!editTransaction"
+      <Drawer position="bottom" header="Edit Transaction" :dismissable="false"
+              :visible="!!editTransaction"
               @update:visible="editTransaction = undefined">
 
         <TransactionEditor :driver="driver" :model-value="editTransaction"
@@ -113,7 +113,7 @@
         <div style="margin-top: 2rem" />
       </Drawer>
 
-      <Drawer position="bottom" header="Group Details" style="height: auto"
+      <Drawer position="bottom" header="Group Details"
               v-model:visible="isEditing">
 
         <GroupEditor :driver="driver" :model-value="group" />
@@ -165,9 +165,9 @@ import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, ico
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
+import TransactionEditor from '@/ui/TransactionEditor.vue';
 import GroupEditor from './GroupEditor.vue';
 import PersonEditor from './PersonEditor.vue';
-import TransactionEditor from './TransactionEditor.vue';
 
 const props = defineProps<{
   driver: Driver;

@@ -1,6 +1,6 @@
 <template>
-  <Flex column class="gap-2">
-    <Flex column class="gap-1">
+  <Flex column class="gap-2" style="flex: 1 1 auto; overflow: hidden">
+    <Flex column class="gap-1" style="overflow-y: auto">
       <Flex v-for="person in group.people"
             row align-center class="gap-2 pa-2 person"
             @click="editingMember = person">
@@ -101,11 +101,16 @@ const balances = computed(() => {
   }
 
   for (const transaction of props.group.transactions) {
-    balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.cost);
+    if (transaction.type == 'expense') {
+      balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.cost);
 
-    const split = computeSplit(transaction.cost, transaction.split);
-    for (const [participant, portion] of zip(transaction.split.participants, split)) {
-      balances.set(participant.person, balances.get(participant.person)! - portion);
+      const split = computeSplit(transaction.cost, transaction.split);
+      for (const [participant, portion] of zip(transaction.split.participants, split)) {
+        balances.set(participant.person, balances.get(participant.person)! - portion);
+      }
+    } else if (transaction.type == 'exchange') {
+      balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.value);
+      balances.set(transaction.payee, balances.get(transaction.payee)! - transaction.value);
     }
   }
 
@@ -135,6 +140,8 @@ async function showShareDialog() {
 </script>
 
 <style scoped lang="scss">
+@use "@/common.scss" as *;
+
 .balance-preview {
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -144,20 +151,9 @@ async function showShareDialog() {
 }
 
 .person {
-  cursor: pointer;
-  user-select: none;
+  @include interactive-list-item;
   padding: 0.5rem 0.5rem;
   border-radius: var(--p-border-radius-md);
-
-  @media (hover: hover) {
-    &:hover {
-      background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
-    }
-  }
-
-  &:active {
-    background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
-  }
 }
 
 img {

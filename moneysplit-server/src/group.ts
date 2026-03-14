@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { WebSocket } from 'ws';
 import sqlite3, { Database } from 'better-sqlite3';
 
-import { serialize, deserialize, operations, assert, type Group, type Message, newGroup } from 'moneysplit-common';
+import { serialize, deserialize, operations, assert, type Group, type Message, newGroup, doMigrations, VERSION } from 'moneysplit-common';
 
 export interface GroupState {
   group: Group;
@@ -10,6 +10,8 @@ export interface GroupState {
 }
 
 interface DatabaseEntry {
+  token: string;
+  version: number;
   content: string
 }
 
@@ -23,6 +25,7 @@ export class GroupManager {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS groups (
         token TEXT PRIMARY KEY,
+        version INTEGER NOT NULL,
         content TEXT NOT NULL
       );
     `);
@@ -35,8 +38,8 @@ export class GroupManager {
     this.groups.set(token, { group, clients: new Set() });
 
     this.db
-      .prepare<[string, string]>('INSERT INTO groups (token, content) VALUES (?, ?);')
-      .run(token, JSON.stringify(serialize(group)));
+      .prepare<[string, number, string]>('INSERT INTO groups (token, version, content) VALUES (?, ?, ?);')
+      .run(token, VERSION, JSON.stringify(serialize(group)));
 
     return token;
   }
@@ -50,7 +53,11 @@ export class GroupManager {
       .get(token);
 
     if (persisted) {
+      const version = persisted['version'] ?? 0;
       const group: Group = deserialize(JSON.parse(persisted['content']));
+
+      doMigrations(version, group);
+
       this.groups.set(token, { group, clients: new Set() });
 
       for (const transaction of group.transactions) {
@@ -101,8 +108,8 @@ export class GroupManager {
       op.impl(state.group, ...message.args);
 
       this.db
-        .prepare<[string, string]>('UPDATE groups SET content = ? WHERE token = ?;')
-        .run(JSON.stringify(serialize(state.group)), token);
+        .prepare<[string, number, string]>('UPDATE groups SET content = ?, version = ? WHERE token = ?;')
+        .run(JSON.stringify(serialize(state.group)), VERSION, token);
 
       for (const client of state.clients) {
         client.send(raw);

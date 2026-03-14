@@ -1,0 +1,14 @@
+@mixin interactive-list-item {
+  cursor: pointer;
+  user-select: none;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
+    }
+  }
+
+  &:active {
+    background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
+  }
+}
