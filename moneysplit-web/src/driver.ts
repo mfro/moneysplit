@@ -176,7 +176,7 @@ export class WebSocketDriver implements Driver {
 
     op.impl(this.state.group, ...args);
 
-    if (this.connection) {
+    if (this.connection && this.state.isConnected) {
       this.connection.rollbackQueue.push(beforeState);
       this.offline.queue.push({
         op: op.name,

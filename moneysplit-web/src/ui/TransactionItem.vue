@@ -6,7 +6,7 @@
 
       <Flex column align-start class="gap-1">
         <span class="transaction-label">
-          {{ transaction.label ?? '' }}
+          {{ transaction.label }}
         </span>
         <span class="transaction-split">
           {{ summary }}
@@ -26,9 +26,14 @@
     </template>
 
     <template v-else>
-      <span class="transaction-split">
-        {{ summary }}
-      </span>
+      <Flex column align-start class="gap-1">
+        <span class="transaction-label" v-if="transaction.label">
+          {{ transaction.label ?? '' }}
+        </span>
+        <span class="transaction-split">
+          {{ summary }}
+        </span>
+      </Flex>
     </template>
   </Flex>
 </template>
