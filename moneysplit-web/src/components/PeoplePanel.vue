@@ -58,7 +58,7 @@
 import { computed, shallowRef } from 'vue';
 import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
-import { ADD_PERSON, assert, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from 'moneysplit-common';
+import { ADD_PERSON, assert, computeBalances, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from 'moneysplit-common';
 import { type Driver } from '../driver';
 import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/icons';
 import Flex from '@/ui/Flex.vue';
@@ -93,29 +93,7 @@ function savePerson(person: Person | null) {
   editingMember.value = undefined;
 }
 
-const balances = computed(() => {
-  const balances = new Map<number, number>();
-
-  for (const person of props.group.people) {
-    balances.set(person.id, 0);
-  }
-
-  for (const transaction of props.group.transactions) {
-    if (transaction.type == 'expense') {
-      balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.cost);
-
-      const split = computeSplit(transaction.cost, transaction.split);
-      for (const [participant, portion] of zip(transaction.split.participants, split)) {
-        balances.set(participant.person, balances.get(participant.person)! - portion);
-      }
-    } else if (transaction.type == 'exchange') {
-      balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.value);
-      balances.set(transaction.payee, balances.get(transaction.payee)! - transaction.value);
-    }
-  }
-
-  return balances;
-});
+const balances = computed(() => computeBalances(props.group));
 
 const copySuccessful = shallowRef(false);
 async function copyShareLink() {

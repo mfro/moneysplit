@@ -3,7 +3,7 @@
     <SelectButton :options="modes" v-model="mode" fluid :allow-empty="false" />
 
     <InputText v-model="label" inputId="label_input" fluid
-               placeholder="Label" />
+               placeholder="Description" />
 
     <Flex class="gap-2" style="position: relative">
       <InputGroup style="width: calc(50% - 0.25rem)">
@@ -106,9 +106,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, shallowRef, watch } from 'vue';
+import { ref, computed, shallowRef, watch, watchEffect } from 'vue';
 import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton } from 'primevue';
-import { clone, computeSplit, isValidTransaction, type Expense, type RatioParticipant, type Transaction } from 'moneysplit-common';
+import { clone, computeSplit, isValidTransaction, type RatioParticipant, type Transaction } from 'moneysplit-common';
 import { formatCost } from '@/util';
 import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
@@ -276,6 +276,11 @@ function isParticipant(id: number) {
 function getParticipant(id: number) {
   return participants.value.find(p => p.person === id);
 }
+
+watchEffect(() => {
+  const zeros = participants.value.filter(p => !p.ratio);
+  for (const p of zeros) toggleParticipant(p.person);
+});
 
 function save() {
   emit('update:modelValue', preview.value);

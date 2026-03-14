@@ -1,11 +1,12 @@
 - make connection global rather than group-specific?
 
-- payment entry
-
-- ez venmo link
+linking
+- venmo
+- zelle
+- ???
+- email
 
 - payment simplification
-
 - sub-cent splitting
 - currencies
 

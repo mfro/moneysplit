@@ -1,6 +1,6 @@
 import { assert, never } from './util';
 import { clone } from './serialize';
-import type { Group, Person, Transaction, Split } from './model';
+import type { Group, Person, Transaction } from './model';
 
 export interface Operation<A extends unknown[] = unknown[]> {
   name: string;
@@ -110,16 +110,4 @@ export function isValidTransaction(transaction: Transaction) {
   }
 
   return true;
-}
-
-export function computeSplit(cost: number, split: Split) {
-  if (split.participants.length === 0) return [];
-
-  const totalRatio = split.participants.reduce((s, p) => s + p.ratio, 0);
-  const shares = split.participants.map(p => Math.round((p.ratio / totalRatio) * cost));
-  const total = shares.reduce((s, p) => s + p, 0);
-
-  shares[0]! += cost - total;
-
-  return shares;
 }

@@ -35,14 +35,6 @@
 
               <span>{{ known.group.name }}</span>
             </Flex>
-
-            <!-- <template v-if="isEditing">
-              <Button size="small" variant="text" rounded icon="yes"
-                      severity="danger"
-                      @click="removeKnownGroup(known)">
-                <Icon :src="icon_delete" />
-              </Button>
-            </template> -->
           </Flex>
         </template>
       </template>
@@ -51,6 +43,24 @@
         <Icon :src="icon_add" />
         New Group
       </Button>
+
+      <Flex grow />
+
+      <div class="ma-4">
+        <h4>
+          Tips
+        </h4>
+        <p class="mt-2">
+          This website works offline.
+        </p>
+        <p class="mt-2">
+          Make sure to open it once you get back online to sync your changes.
+        </p>
+        <p class="mt-2">
+          Make sure to open this in a browser app, not in an embedded browser
+          within an app.
+        </p>
+      </div>
     </Flex>
   </Flex>
 </template>

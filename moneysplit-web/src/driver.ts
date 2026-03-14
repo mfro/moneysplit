@@ -199,6 +199,10 @@ export class WebSocketDriver implements Driver {
         op: op.name,
         args: args,
       });
+
+      if (window.navigator.onLine) {
+        this.startConnection();
+      }
     }
   }
 

@@ -45,7 +45,7 @@ export interface RatioParticipant {
   ratio: number;
 }
 
-export function newGroup() {
+export function newGroup(): Group {
   return {
     name: 'Group split',
     nextId: 1,
