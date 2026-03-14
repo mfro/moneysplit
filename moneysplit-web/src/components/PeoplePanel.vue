@@ -58,12 +58,12 @@
 import { computed, shallowRef } from 'vue';
 import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
+import { ADD_PERSON, assert, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from 'moneysplit-common';
 import { type Driver } from '../driver';
-import Flex from '../ui/Flex.vue';
-import { ADD_PERSON, assert, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from '../../../moneysplit-common';
-import Balance from '@/ui/Balance.vue';
-import Icon from '@/ui/Icon.vue';
 import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/icons';
+import Flex from '@/ui/Flex.vue';
+import Icon from '@/ui/Icon.vue';
+import Balance from '@/ui/Balance.vue';
 import PersonEditor from './PersonEditor.vue';
 
 const props = defineProps<{
@@ -82,7 +82,7 @@ function addPerson(person: Person | null) {
 }
 
 function savePerson(person: Person | null) {
-  assert(editingMember.value !== undefined, 'invalid save transaction');
+  assert(!!editingMember.value, 'invalid save transaction');
 
   if (person) {
     props.driver.apply(UPDATE_PERSON, person);

@@ -28,9 +28,9 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
-import { canAddPerson, canDeletePerson, canUpdatePerson, type Person } from '../../../moneysplit-common';
-import { icon_delete, icon_save } from '@/assets/icons';
+import { canAddPerson, canDeletePerson, canUpdatePerson, type Person } from 'moneysplit-common';
 import type { Driver } from '@/driver';
+import { icon_delete, icon_save } from '@/assets/icons';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 

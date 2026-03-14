@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { assert, clone, CLOSE_REASON_GROUP_NOT_FOUND, deserialize, operations, serialize, type Group, type Message, type Operation } from '../../moneysplit-common';
+import { assert, clone, CLOSE_REASON_GROUP_NOT_FOUND, deserialize, newGroup, operations, serialize, type Group, type Message, type Operation } from 'moneysplit-common';
 import { type OfflineApply, type OfflineGroup, appState } from './localStorage';
 
 export interface State {
@@ -84,7 +84,7 @@ export class WebSocketDriver implements Driver {
       this.state.isConnected = false;
       this.state.isPendingSync = false;
 
-      if (e.reason == CLOSE_REASON_GROUP_NOT_FOUND) {
+      if (e.reason === CLOSE_REASON_GROUP_NOT_FOUND) {
         this.state.close_reason = e.reason;
       }
     });
@@ -92,7 +92,7 @@ export class WebSocketDriver implements Driver {
     socket.addEventListener('message', (e) => {
       const message = deserialize(JSON.parse(e.data)) as Message;
 
-      if (message.type == 'init') {
+      if (message.type === 'init') {
 
         this.state.isConnecting = false;
         this.state.isConnected = true;
@@ -106,13 +106,13 @@ export class WebSocketDriver implements Driver {
           this.offline.queue = [];
 
           const index = appState.newGroups.indexOf(this.offline);
-          if (index != -1) appState.newGroups.splice(index, 1);
+          if (index !== -1) appState.newGroups.splice(index, 1);
 
           appState.knownGroups[this.state.token] = this.offline;
 
           for (const apply of redrive) {
             const op = operations.get(apply.op);
-            assert(op != null, 'unknown operation');
+            assert(!!op, 'unknown operation');
 
             this.apply(op, ...apply.args);
           }
@@ -124,12 +124,12 @@ export class WebSocketDriver implements Driver {
           };
         }
 
-      } else if (message.type == 'apply') {
+      } else if (message.type === 'apply') {
 
         const op = operations.get(message.op);
-        assert(op != null, 'unknown operation');
-        assert(this.offline != null, 'invalid apply');
-        assert(this.state.group != null, 'invalid apply');
+        assert(!!op, 'unknown operation');
+        assert(!!this.offline, 'invalid apply');
+        assert(!!this.state.group, 'invalid apply');
 
         const nextPending = this.offline.queue.shift();
         const nextRollback = rollbackQueue.shift();
@@ -165,8 +165,8 @@ export class WebSocketDriver implements Driver {
   }
 
   apply<A extends unknown[]>(op: Operation<A>, ...args: A): void {
-    assert(this.offline != null, 'invalid apply');
-    assert(this.state.group != null, 'invalid apply');
+    assert(!!this.offline, 'invalid apply');
+    assert(!!this.state.group, 'invalid apply');
 
     const beforeState = clone(this.state.group);
 
@@ -189,7 +189,7 @@ export class WebSocketDriver implements Driver {
 
       this.state.isPendingSync = true;
     } else {
-      assert(this.offline != null, 'how apply without state');
+      assert(!!this.offline, 'how apply without state');
 
       this.offline.queue.push({
         op: op.name,
@@ -206,12 +206,7 @@ export class WebSocketDriver implements Driver {
   static create() {
     const offline: OfflineGroup = {
       hidden: false,
-      group: {
-        name: 'Group split',
-        nextId: 1,
-        people: [],
-        transactions: [],
-      },
+      group: newGroup(),
       queue: [],
     };
 
@@ -244,6 +239,7 @@ export class WebSocketDriver implements Driver {
 }
 
 function isExpected(entry: OfflineApply, op: string, args: unknown[]) {
-  return op == entry.op
-    && JSON.stringify(serialize(args)) == JSON.stringify(serialize(entry.args));
+  // TODO improve this implementation
+  return op === entry.op
+    && JSON.stringify(serialize(args)) === JSON.stringify(serialize(entry.args));
 }

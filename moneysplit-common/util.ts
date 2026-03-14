@@ -18,13 +18,13 @@ export function map<T extends {}, V extends { [K in keyof T]: any }>(o: T, fn: <
 }
 
 export function zip<A, B>(a: A[], b: B[]) {
-  assert(a.length == b.length, 'invalid zip');
+  assert(a.length === b.length, 'invalid zip');
 
   return a.map((v, i) => [v, b[i]!] as const);
 }
 
 export function dateEquals(a: Date, b: Date) {
-  return a.getFullYear() == b.getFullYear()
-    && a.getMonth() == b.getMonth()
-    && a.getDate() == b.getDate()
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate()
 }

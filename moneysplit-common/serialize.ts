@@ -30,10 +30,10 @@ export function serialize(t: Serializable): unknown {
         return t;
 
       case 'object':
-        if (t == null)
+        if (t === null)
           return null;
 
-        if (t.constructor == Object) {
+        if (t.constructor === Object) {
           assert(!(META_KEY in t), 'invalid meta key')
 
           return map(t as any, (k, v) => serialize(v));
@@ -72,18 +72,18 @@ export function deserialize(t: unknown): Serializable {
         return t;
 
       case 'object':
-        if (t == null)
+        if (t === null)
           return null;
 
         if (Array.isArray(t)) {
           return t.map(deserialize);
         } else if (META_KEY in t) {
-          assert(typeof t[META_KEY] == 'string' && 'value' in t, 'invalid object');
+          assert(typeof t[META_KEY] === 'string' && 'value' in t, 'invalid object');
           const type = t[META_KEY];
 
           let value;
-          if (type == 'Date') {
-            assert(typeof t.value == 'string', 'invalid date');
+          if (type === 'Date') {
+            assert(typeof t.value === 'string', 'invalid date');
             value = new Date(t.value);
           } else {
             assert(false, `unknown type: ${type}`);
@@ -115,11 +115,11 @@ export function clone<T extends Serializable>(t: T): T {
         return t;
 
       case 'object':
-        if (t == null)
+        if (t === null)
           return t;
 
         let value;
-        if (t.constructor == Object) {
+        if (t.constructor === Object) {
           value = map(t as any, (k, v) => clone(v));
         } else if (Array.isArray(t)) {
           value = t.map(clone);

@@ -1,0 +1,7 @@
+{
+  "workspaces": [
+    "./moneysplit-common",
+    "./moneysplit-server",
+    "./moneysplit-web"
+  ]
+}

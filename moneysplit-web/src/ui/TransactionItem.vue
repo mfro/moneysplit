@@ -25,10 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import { assert, computeSplit, type Group, type Transaction } from '../../../moneysplit-common';
-import { localUserName } from '@/localStorage';
-import { formatCost } from '@/util';
 import { computed } from 'vue';
+import { assert, computeSplit, type Group, type Transaction } from 'moneysplit-common';
+import { formatCost } from '@/util';
+import { localUserName } from '@/localStorage';
 import Flex from './Flex.vue';
 import Balance from './Balance.vue';
 
@@ -42,8 +42,8 @@ const emit = defineEmits<{
 }>();
 
 const summary = computed(() => {
-  const payer = props.group.people.find(p => p.id == props.transaction.payer);
-  assert(payer != null, 'payer not found');
+  const payer = props.group.people.find(p => p.id === props.transaction.payer);
+  assert(!!payer, 'payer not found');
 
   if (props.transaction.cost < 0) {
     return `Income to ${payer.name}`;
@@ -53,21 +53,21 @@ const summary = computed(() => {
 });
 
 const preview = computed(() => {
-  const localUser = props.group.people.find(p => p.name == localUserName.value);
+  const localUser = props.group.people.find(p => p.name === localUserName.value);
   if (!localUser) return null;
 
   const split = computeSplit(props.transaction.cost, props.transaction.split);
-  const index = props.transaction.split.participants.findIndex(p => p.person == localUser.id)
+  const index = props.transaction.split.participants.findIndex(p => p.person === localUser.id)
 
-  const paid = props.transaction.payer == localUser.id
+  const paid = props.transaction.payer === localUser.id
     ? props.transaction.cost
     : 0;
 
-  const portion = index == -1
+  const portion = index === -1
     ? 0
     : split[index]!;
 
-  if (paid == portion) return null;
+  if (paid === portion) return null;
 
   return paid - portion;
 });

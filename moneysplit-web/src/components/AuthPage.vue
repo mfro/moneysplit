@@ -1,12 +1,12 @@
 <template>
   <div class="auth-page">
-    <Card v-if="phase == 'before-login'">
+    <Card v-if="phase === 'before-login'">
       <template #content>
         <Button @click="login()">Start</Button>
       </template>
     </Card>
 
-    <Card v-if="phase == 'before-register'">
+    <Card v-if="phase === 'before-register'">
       <template #content>
         <Flex column class="gap-2">
           <label for="displayName">Display name</label>
@@ -20,7 +20,7 @@
       </template>
     </Card>
 
-    <Card v-if="phase == 'done'">
+    <Card v-if="phase === 'done'">
       <template #content>
         auth complete
       </template>
@@ -29,10 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import Flex from '@/ui/Flex.vue';
-import { Button, Card, InputText } from 'primevue';
 import { onMounted, shallowRef } from 'vue';
-import { assert } from '../../../moneysplit-common';
+import { Button, Card, InputText } from 'primevue';
+import { assert } from 'moneysplit-common';
+import Flex from '@/ui/Flex.vue';
 
 const phase = shallowRef<'before-login' | 'login' | 'before-register' | 'register' | 'done'>('before-login');
 
@@ -60,7 +60,7 @@ async function login() {
 }
 
 async function register() {
-  assert(phase.value == 'before-register', 'invalid register');
+  assert(phase.value === 'before-register', 'invalid register');
   phase.value = 'register';
 
   const encoder = new TextEncoder();

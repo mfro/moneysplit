@@ -29,7 +29,7 @@
 
             <span style="color: var(--text-muted)">
               {{ group.people.length }}
-              member{{ group.people.length == 1 ? '' : 's' }}
+              member{{ group.people.length === 1 ? '' : 's' }}
             </span>
           </Flex>
         </template>
@@ -136,7 +136,7 @@
     </template>
 
     <template
-              v-else-if="driver.state.close_reason == CLOSE_REASON_GROUP_NOT_FOUND">
+              v-else-if="driver.state.close_reason === CLOSE_REASON_GROUP_NOT_FOUND">
       <Flex align-center justify-center class="my-6">
         <span>Group not found</span>
       </Flex>
@@ -157,17 +157,17 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef, watchEffect } from 'vue';
-import { type Driver } from '../driver';
-import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from '../../../moneysplit-common';
-import Flex from '../ui/Flex.vue';
 import { Button, Dialog, Drawer } from 'primevue';
-import GroupEditor from './GroupEditor.vue';
-import TransactionEditor from './TransactionEditor.vue';
-import TransactionItem from '@/ui/TransactionItem.vue';
-import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/icons';
-import Icon from '@/ui/Icon.vue';
+import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from 'moneysplit-common';
+import { type Driver } from '../driver';
 import { localUserName } from '@/localStorage';
+import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/icons';
+import Flex from '@/ui/Flex.vue';
+import Icon from '@/ui/Icon.vue';
+import TransactionItem from '@/ui/TransactionItem.vue';
+import GroupEditor from './GroupEditor.vue';
 import PersonEditor from './PersonEditor.vue';
+import TransactionEditor from './TransactionEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -180,7 +180,7 @@ const emit = defineEmits<{
 const group = computed(() => props.driver.state.group);
 
 const localUser = computed(() => {
-  return group.value?.people.find(p => p.name == localUserName.value);
+  return group.value?.people.find(p => p.name === localUserName.value);
 });
 
 const isEditing = ref(false);
@@ -232,19 +232,19 @@ const schedule = computed(() => {
 });
 
 function createTransaction(transaction: Transaction | null) {
-  if (transaction != null) {
+  if (transaction) {
     props.driver.apply(ADD_TRANSACTION, transaction);
     newTransaction.value = false;
   }
 }
 
 function saveTransaction(transaction: Transaction | null) {
-  assert(editTransaction.value !== undefined, 'invalid save transaction');
+  assert(!!editTransaction.value, 'invalid save transaction');
 
-  if (transaction == null) {
+  if (!transaction) {
     props.driver.apply(DELETE_TRANSACTION, editTransaction.value.id);
   } else {
-    assert(transaction.id == editTransaction.value.id, 'invalid save transaction 2')
+    assert(transaction.id === editTransaction.value.id, 'invalid save transaction 2')
     props.driver.apply(UPDATE_TRANSACTION, transaction);
   }
 

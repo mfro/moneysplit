@@ -32,12 +32,12 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
+import { RENAME_GROUP, type Group } from 'moneysplit-common';
 import type { Driver } from '@/driver';
-import Flex from '@/ui/Flex.vue';
-import { RENAME_GROUP, type Group } from '../../../moneysplit-common';
-import PeoplePanel from './PeoplePanel.vue';
 import { icon_save, icon_undo } from '@/assets/icons';
+import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
+import PeoplePanel from './PeoplePanel.vue';
 
 const props = defineProps<{
   driver: Driver,
@@ -46,7 +46,7 @@ const props = defineProps<{
 
 const groupName = shallowRef(props.modelValue.name)
 
-const isGroupNameChanged = computed(() => groupName.value != props.modelValue.name);
+const isGroupNameChanged = computed(() => groupName.value !== props.modelValue.name);
 const isGroupNameSaveable = computed(() => isGroupNameChanged.value && groupName.value.trim());
 
 function saveName() {

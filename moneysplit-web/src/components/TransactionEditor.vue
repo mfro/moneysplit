@@ -90,14 +90,14 @@
 
 <script setup lang="ts">
 import { ref, computed, shallowRef } from 'vue';
-import Flex from '../ui/Flex.vue';
-import { clone, computeSplit, type RatioParticipant, type Transaction } from '../../../moneysplit-common';
 import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select } from 'primevue';
-import type { Driver } from '@/driver';
+import { clone, computeSplit, type RatioParticipant, type Transaction } from 'moneysplit-common';
 import { formatCost } from '@/util';
+import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
-import Icon from '@/ui/Icon.vue';
 import { icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/icons';
+import Flex from '@/ui/Flex.vue';
+import Icon from '@/ui/Icon.vue';
 
 const props = defineProps<{
   driver: Driver,
@@ -120,8 +120,8 @@ const cost = computed(() => {
 const label = ref(props.modelValue?.label ?? null);
 const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(
-  props.driver.state.group!.people.find(p => p.id == props.modelValue?.payer)
-  ?? props.driver.state.group?.people.find(p => p.name == localUserName.value)
+  props.driver.state.group!.people.find(p => p.id === props.modelValue?.payer)
+  ?? props.driver.state.group?.people.find(p => p.name === localUserName.value)
   ?? null);
 
 const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.participants ?? null) ?? props.driver.state.group!.people.map(person => ({
@@ -132,7 +132,7 @@ const participants = ref<RatioParticipant[]>(clone(props.modelValue?.split.parti
 const availablePeople = computed(() => props.driver.state.group!.people);
 
 const preview = computed<Transaction | null>(() => {
-  if (payer.value !== null
+  if (payer.value
     && cost.value
     && date.value
     && label.value
@@ -156,9 +156,9 @@ const preview = computed<Transaction | null>(() => {
 function getPreview(personId: number) {
   if (!cost.value || !participants.value.length) return;
 
-  const index = participants.value.findIndex(p => p.person == personId);
+  const index = participants.value.findIndex(p => p.person === personId);
 
-  if (index == -1) {
+  if (index === -1) {
     return null;
   } else {
     const splitPreview = computeSplit(cost.value, {

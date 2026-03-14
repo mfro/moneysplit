@@ -2,8 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { WebSocket } from 'ws';
 import sqlite3, { Database } from 'better-sqlite3';
 
-import type { Group, Message } from '../../moneysplit-common';
-import { serialize, deserialize, operations, assert } from '../../moneysplit-common';
+import { serialize, deserialize, operations, assert, type Group, type Message, newGroup } from 'moneysplit-common';
 
 export interface GroupState {
   group: Group;
@@ -31,13 +30,7 @@ export class GroupManager {
 
   createGroup(): string {
     const token = randomUUID();
-
-    const group: Group = {
-      name: 'Group split',
-      nextId: 0,
-      people: [],
-      transactions: [],
-    };
+    const group = newGroup();
 
     this.groups.set(token, { group, clients: new Set() });
 
@@ -103,7 +96,7 @@ export class GroupManager {
 
     try {
       const op = operations.get(message.op);
-      assert(op != null, 'unknown operation');
+      assert(!!op, 'unknown operation');
 
       op.impl(state.group, ...message.args);
 

@@ -1,4 +1,4 @@
-- make connection global rather than group-specific
+- make connection global rather than group-specific?
 
 - payment simplification
 

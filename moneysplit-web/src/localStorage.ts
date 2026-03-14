@@ -1,5 +1,5 @@
 import { customRef, reactive, toRaw, watch } from 'vue';
-import { deserialize, serialize, type Group } from '../../moneysplit-common';
+import { deserialize, serialize, type Group } from 'moneysplit-common';
 
 export const localStorage = {
   get(name: string, rawString = false) {
@@ -39,10 +39,10 @@ function persist<T extends object>(key: string, initializer: () => T) {
   let raw: T;
   try {
     const stored = window.localStorage.getItem(key);
-    if (stored === null) {
-      raw = initializer();
-    } else {
+    if (stored) {
       raw = deserialize(JSON.parse(stored));
+    } else {
+      raw = initializer();
     }
   } catch {
     raw = initializer();

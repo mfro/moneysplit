@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 
 import { GroupManager } from './group';
-import { CLOSE_REASON_GROUP_NOT_FOUND } from '../../moneysplit-common';
+import { CLOSE_REASON_GROUP_NOT_FOUND } from 'moneysplit-common';
 
 const port = parseInt(process.argv[2]);
 
@@ -20,7 +20,7 @@ wss.on('connection', (ws, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let token = url.searchParams.get('token');
-  if (token == null) {
+  if (!token) {
     token = manager.createGroup();
     console.log(`Group created: ${token}`);
   }
