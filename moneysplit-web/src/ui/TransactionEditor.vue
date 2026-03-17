@@ -43,33 +43,21 @@
               </span>
               <Flex justify-space-between>
                 <span class="split-preview"
-                      v-if="person === payer && cost !== null">
-                  {{ person === payer && cost !== null
-                    ? ` ${mode == 'Income' ? 'Received' : 'Paid'}
-                  ${formatCost(Math.abs(cost))}`
-                    : '' }}
+                      v-if="getPreview(person.id)">
+                  {{ getPreview(person.id) }}
                 </span>
                 <span class="split-preview" v-else>&nbsp;</span>
-
-                <span class="split-preview" v-if="getPreview(person.id)">
-                  {{ formatCost(getPreview(person.id)!) }}
-                </span>
               </Flex>
             </Flex>
           </Flex>
 
-          <InputGroup style="width: auto">
-            <InputGroupAddon>
-              <Checkbox binary :model-value="isParticipant(person.id)"
-                        @update:model-value="toggleParticipant(person.id)" />
-            </InputGroupAddon>
-
-            <InputNumber :model-value="getParticipant(person.id)?.ratio ?? null"
-                         @input="e => getParticipant(person.id)!.ratio = (e.value as number)"
-                         :disabled="!isParticipant(person.id)"
-                         :max-fraction-digits="20"
-                         style="max-width: 8ch" />
-          </InputGroup>
+          <InputNumber :model-value="getParticipant(person.id)?.ratio ?? null"
+                       @input="e => updateRatio(person, e.value)"
+                       @value-change="e => updateRatio(person, e)"
+                       :max-fraction-digits="20"
+                       style="max-width: 11ch"
+                       show-clear
+                       fluid />
         </Flex>
       </Flex>
     </template>
@@ -120,7 +108,7 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef, watch, watchEffect } from 'vue';
 import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton } from 'primevue';
-import { clone, computeSplit, isValidTransaction, type RatioParticipant, type Transaction } from 'moneysplit-common';
+import { clone, computeSplit, isValidTransaction, type Person, type RatioParticipant, type Transaction } from 'moneysplit-common';
 import { formatCost } from '@/util';
 import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
@@ -222,6 +210,7 @@ const preview = computed<Transaction | null>(() => {
       && date.value
       && label.value
       && participants.value.length > 0) {
+      const filtered = participants.value.filter(p => p.ratio);
       return {
         type: 'expense',
         id: props.modelValue?.id ?? group.value.nextId,
@@ -231,7 +220,7 @@ const preview = computed<Transaction | null>(() => {
         payer: payer.value.id,
         split: {
           type: 'ratio',
-          participants: participants.value,
+          participants: filtered,
         },
       };
     }
@@ -239,8 +228,7 @@ const preview = computed<Transaction | null>(() => {
     if (cost.value
       && date.value
       && payer.value
-      && payee.value
-      && participants.value.length > 0) {
+      && payee.value) {
       return {
         type: 'exchange',
         id: props.modelValue?.id ?? group.value.nextId,
@@ -259,22 +247,40 @@ const preview = computed<Transaction | null>(() => {
 function getPreview(personId: number) {
   if (!cost.value || !participants.value.length) return;
 
+  const parts = [];
+
+  if (personId === payer.value?.id && cost.value !== null) {
+    const paidVerb = mode.value === 'Income' ? 'received' : 'paid';
+
+    parts.push(`${paidVerb} ${formatCost(Math.abs(cost.value))}`);
+  }
+
   const index = participants.value.findIndex(p => p.person === personId);
 
-  if (index === -1) {
-    return null;
-  } else {
+  if (index != -1) {
     const splitPreview = computeSplit(cost.value, {
       type: 'ratio',
       participants: participants.value,
     });
 
-    return splitPreview[index];
+    const portion = splitPreview[index]!;
+
+    const owesVerb = mode.value === 'Income' ? 'is owed' : 'owes';
+    const owes = `${owesVerb} ${formatCost(Math.abs(portion))}`
+
+    parts.push(owes);
+  }
+
+  if (parts.length) {
+    return parts.join(', ')
+  } else {
+    return null;
   }
 }
 
 function toggleParticipant(id: number) {
   const idx = participants.value.findIndex(p => p.person === id);
+
   if (idx >= 0) {
     participants.value.splice(idx, 1);
   } else {
@@ -282,12 +288,17 @@ function toggleParticipant(id: number) {
   }
 }
 
-function isParticipant(id: number) {
-  return participants.value.some(p => p.person === id);
-}
-
 function getParticipant(id: number) {
   return participants.value.find(p => p.person === id);
+}
+
+function updateRatio(person: Person, value: string | number | undefined) {
+  if (value) {
+    if (!getParticipant(person.id)) toggleParticipant(person.id);
+    getParticipant(person.id)!.ratio = (value as number)
+  } else {
+    if (getParticipant(person.id)) toggleParticipant(person.id);
+  }
 }
 
 watchEffect(() => {
