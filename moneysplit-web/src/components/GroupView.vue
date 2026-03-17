@@ -98,8 +98,6 @@
 
         <TransactionEditor :driver="driver" :model-value="null"
                            @update:model-value="createTransaction" />
-
-        <div style="margin-top: 2rem" />
       </Drawer>
 
       <Drawer position="bottom" header="Edit Transaction" :dismissable="false"
@@ -109,16 +107,12 @@
         <TransactionEditor :driver="driver" :model-value="editTransaction"
                            @update:model-value="saveTransaction"
                            v-if="editTransaction" />
-
-        <div style="margin-top: 2rem" />
       </Drawer>
 
       <Drawer position="bottom" header="Group Details"
               v-model:visible="isEditing">
 
         <GroupEditor :driver="driver" :model-value="group" />
-
-        <div style="margin-top: 2rem" />
       </Drawer>
 
       <Flex row align-center justify-center class="gap-2 add-button-container"

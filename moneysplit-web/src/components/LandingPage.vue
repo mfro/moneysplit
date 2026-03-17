@@ -23,7 +23,8 @@
         <template v-if="isEditing || !known.hidden">
           <Flex align-center class="known-group"
                 :class="{ editing: isEditing }"
-                @click="!isEditing && (token ? openToken(token) : openLocal(known))">
+                @click="!isEditing && (token ? openToken(token) : openLocal(known))"
+                @touchstart="() => { /* needed for mobile to show click effects */ }">
 
             <Flex grow align-center
                   @click="isEditing && (known.hidden = !known.hidden)">

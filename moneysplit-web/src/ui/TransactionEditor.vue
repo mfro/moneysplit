@@ -33,7 +33,8 @@
               v-for="(person, i) in availablePeople">
 
           <Flex grow align-center class="participant gap-2"
-                @click="payer = person">
+                @click="payer = person"
+                @touchstart="() => { /* needed for mobile to show click effects */ }">
             <Icon :src="icon_attach_money" class="payer-icon"
                   :class="{ active: person === payer }" />
 

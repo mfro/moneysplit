@@ -3,7 +3,8 @@
     <Flex column class="gap-1" style="overflow-y: auto">
       <Flex v-for="person in group.people"
             row align-center class="gap-2 pa-2 person"
-            @click="editingPerson = person">
+            @click="editingPerson = person"
+            @touchstart="() => { /* needed for mobile to show click effects */ }">
         <Flex column class="gap-1">
           <span>{{ person.name }}</span>
           <Balance class="balance-preview" :value="balances.get(person.id)!" />

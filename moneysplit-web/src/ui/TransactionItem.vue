@@ -1,6 +1,7 @@
 <template>
   <Flex align-center class="gap-2 transaction-item"
-        @click="emit('edit')">
+        @click="emit('edit')"
+        @touchstart="() => { /* needed for mobile to show click effects */ }">
 
     <template v-if="transaction.type == 'expense'">
 
