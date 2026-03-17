@@ -20,7 +20,7 @@ wss.on('connection', (ws, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let version = url.searchParams.get('version');
-  if (version != VERSION.toString()) {
+  if (version !== VERSION.toString()) {
     console.log(`version mismatch: ${version}`);
     ws.close(4004, CLOSE_REASON_VERSION_MISMATCH)
     return;

@@ -10,7 +10,7 @@ export * from './socket';
 export const VERSION = 2;
 
 export function doMigrations(version: number, group: Group) {
-  if (version == VERSION) return;
+  if (version === VERSION) return;
 
   for (const transaction of group.transactions) {
     transaction.type = 'expense';
@@ -37,14 +37,14 @@ export function computeBalances(group: Group) {
   }
 
   for (const transaction of group.transactions) {
-    if (transaction.type == 'expense') {
+    if (transaction.type === 'expense') {
       balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.cost);
 
       const split = computeSplit(transaction.cost, transaction.split);
       for (const [participant, portion] of zip(transaction.split.participants, split)) {
         balances.set(participant.person, balances.get(participant.person)! - portion);
       }
-    } else if (transaction.type == 'exchange') {
+    } else if (transaction.type === 'exchange') {
       balances.set(transaction.payer, balances.get(transaction.payer)! + transaction.value);
       balances.set(transaction.payee, balances.get(transaction.payee)! - transaction.value);
     }

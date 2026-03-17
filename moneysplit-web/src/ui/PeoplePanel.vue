@@ -31,7 +31,7 @@
                     @update:model-value="addPerson" />
     </Dialog>
 
-    <Dialog modal header="Edit Member" :visible="!!editingPerson"
+    <Dialog modal header="Edit Member" :visible="editingPerson !== undefined"
             @update:visible="editingPerson = undefined"
             style="width: calc(100svw - 1.5rem)">
 
@@ -39,7 +39,7 @@
                     @update:model-value="savePerson" />
     </Dialog>
 
-    <Dialog modal dismissableMask header="Group Invite" :visible="!!qrCode"
+    <Dialog modal dismissableMask header="Group Invite" :visible="qrCode !== undefined"
             @update:visible="qrCode = undefined">
 
       <Flex column align-center class="gap-4">
@@ -59,13 +59,13 @@
 import { computed, shallowRef } from 'vue';
 import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
-import { ADD_PERSON, assert, computeBalances, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from 'moneysplit-common';
-import { type Driver } from '../driver';
+import { ADD_PERSON, assert, computeBalances, delay, DELETE_PERSON, UPDATE_PERSON, type Group, type Person } from 'moneysplit-common';
+import { type Driver } from '@/driver';
 import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import Balance from '@/ui/Balance.vue';
-import PersonEditor from '../ui/PersonEditor.vue';
+import PersonEditor from '@/ui/PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -83,7 +83,7 @@ function addPerson(person: Person | null) {
 }
 
 function savePerson(person: Person | null) {
-  assert(!!editingPerson.value, 'invalid save transaction');
+  assert(editingPerson.value !== undefined, 'invalid save transaction');
 
   if (person) {
     props.driver.apply(UPDATE_PERSON, person);

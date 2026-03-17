@@ -85,7 +85,7 @@ export const appState = persist<AppState>(
   }),
 );
 
-if (appState.version != VERSION) {
+if (appState.version !== VERSION) {
   for (const entry of [...appState.newGroups, ...Object.values(appState.knownGroups)]) {
     doMigrations(appState.version ?? 0, entry.group);
   }

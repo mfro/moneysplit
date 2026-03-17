@@ -46,13 +46,13 @@ export class GroupManager {
 
   getGroup(token: string): GroupState | undefined {
     const existing = this.groups.get(token);
-    if (existing) return existing;
+    if (existing !== undefined) return existing;
 
     const persisted = this.db
       .prepare<[string], DatabaseEntry>('SELECT * FROM groups WHERE token = ?;')
       .get(token);
 
-    if (persisted) {
+    if (persisted !== undefined) {
       const version = persisted['version'] ?? 0;
       const group: Group = deserialize(JSON.parse(persisted['content']));
 
@@ -61,7 +61,7 @@ export class GroupManager {
       this.groups.set(token, { group, clients: new Set() });
 
       for (const transaction of group.transactions) {
-        if (!('id' in transaction as any)) {
+        if (!('id' in (transaction as any))) {
           transaction.id = ++group.nextId;
         }
       }
@@ -72,7 +72,7 @@ export class GroupManager {
 
   addClient(token: string, ws: WebSocket): boolean {
     const state = this.getGroup(token);
-    if (!state) return false;
+    if (state === undefined) return false;
 
     state.clients.add(ws);
 
@@ -88,14 +88,14 @@ export class GroupManager {
 
   removeClient(token: string, ws: WebSocket) {
     const state = this.groups.get(token);
-    if (!state) return;
+    if (state === undefined) return;
 
     state.clients.delete(ws);
   }
 
   handleMessage(token: string, ws: WebSocket, raw: string) {
     const state = this.groups.get(token);
-    if (!state) return;
+    if (state === undefined) return;
 
     const message = deserialize(JSON.parse(raw)) as Message;
 
@@ -103,7 +103,7 @@ export class GroupManager {
 
     try {
       const op = operations.get(message.op);
-      assert(!!op, 'unknown operation');
+      assert(op !== undefined, 'unknown operation');
 
       op.impl(state.group, ...message.args);
 

@@ -112,7 +112,7 @@
       <Drawer position="bottom" header="Group Details"
               v-model:visible="isEditing">
 
-        <GroupEditor :driver="driver" :model-value="group" />
+        <GroupDetails :driver="driver" :model-value="group" />
       </Drawer>
 
       <Flex row align-center justify-center class="gap-2 add-button-container"
@@ -153,15 +153,15 @@
 import { computed, ref, shallowRef, watchEffect } from 'vue';
 import { Button, Dialog, Drawer } from 'primevue';
 import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from 'moneysplit-common';
-import { type Driver } from '../driver';
+import { type Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
 import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
 import TransactionEditor from '@/ui/TransactionEditor.vue';
-import GroupEditor from './GroupEditor.vue';
 import JoinForm from '@/ui/JoinForm.vue';
+import GroupDetails from './GroupDetails.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -233,7 +233,7 @@ function createTransaction(transaction: Transaction | null) {
 }
 
 function saveTransaction(transaction: Transaction | null) {
-  assert(!!editTransaction.value, 'invalid save transaction');
+  assert(editTransaction.value !== undefined, 'invalid save transaction');
 
   if (!transaction) {
     props.driver.apply(DELETE_TRANSACTION, editTransaction.value.id);

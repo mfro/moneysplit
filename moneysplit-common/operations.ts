@@ -54,14 +54,14 @@ export const DELETE_PERSON = define('DELETE_PERSON', (group, id: number) => {
 });
 
 export const ADD_TRANSACTION = define('ADD_TRANSACTION', (group, transaction: Omit<Transaction, 'id'>) => {
-  assert(isValidTransaction(transaction as Transaction), 'invalid group name');
+  assert(isValidTransaction(transaction as Transaction), 'invalid transaction');
 
   const id = ++group.nextId;
   group.transactions.push({ ...clone(transaction), id } as Transaction);
 });
 
 export const UPDATE_TRANSACTION = define('UPDATE_TRANSACTION', (group, update: Transaction) => {
-  assert(isValidTransaction(update), 'invalid group name');
+  assert(isValidTransaction(update), 'invalid transaction');
 
   const index = group.transactions.findIndex(p => p.id === update.id);
   if (index !== -1) {

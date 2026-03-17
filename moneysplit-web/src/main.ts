@@ -1,9 +1,9 @@
-import { createApp } from 'vue'
+import { createApp } from 'vue';
 import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
 
-import App from './App.vue'
-import './style.scss'
+import App from '@/App.vue';
+import './style.scss';
 import { definePreset } from '@primeuix/themes';
 
 const Noir = definePreset(Aura, {
@@ -19,7 +19,7 @@ const Noir = definePreset(Aura, {
       700: '{slate.700}',
       800: '{slate.800}',
       900: '{slate.900}',
-      950: '{slate.950}'
+      950: '{slate.950}',
     },
     colorScheme: {
       light: {
@@ -27,7 +27,7 @@ const Noir = definePreset(Aura, {
           color: '{slate.950}',
           inverseColor: '#ffffff',
           hoverColor: '{slate.900}',
-          activeColor: '{slate.800}'
+          activeColor: '{slate.800}',
         },
       },
       dark: {
@@ -35,17 +35,17 @@ const Noir = definePreset(Aura, {
           color: '{slate.50}',
           inverseColor: '{slate.950}',
           hoverColor: '{slate.100}',
-          activeColor: '{slate.200}'
+          activeColor: '{slate.200}',
         },
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 const app = createApp(App);
 app.use(PrimeVue, {
   theme: {
     preset: Noir,
-  }
+  },
 });
-app.mount('#app')
+app.mount('#app');

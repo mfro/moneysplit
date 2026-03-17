@@ -108,14 +108,14 @@
 
 <script setup lang="ts">
 import { ref, computed, shallowRef, watch, watchEffect } from 'vue';
-import { Button, Checkbox, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton } from 'primevue';
+import { Button, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton } from 'primevue';
 import { clone, computeSplit, isValidTransaction, type Person, type RatioParticipant, type Transaction } from 'moneysplit-common';
 import { formatCost } from '@/util';
 import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
 import { icon_arrow_downward, icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/symbols';
-import Flex from '@/ui/Flex.vue';
-import Icon from '@/ui/Icon.vue';
+import Flex from './Flex.vue';
+import Icon from './Icon.vue';
 
 const props = defineProps<{
   driver: Driver,
@@ -258,7 +258,7 @@ function getPreview(personId: number) {
 
   const index = participants.value.findIndex(p => p.person === personId);
 
-  if (index != -1) {
+  if (index !== -1) {
     const splitPreview = computeSplit(cost.value, {
       type: 'ratio',
       participants: participants.value,

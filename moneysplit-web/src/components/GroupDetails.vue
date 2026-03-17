@@ -37,7 +37,7 @@ import type { Driver } from '@/driver';
 import { icon_save, icon_undo } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
-import PeoplePanel from './PeoplePanel.vue';
+import PeoplePanel from '../ui/PeoplePanel.vue';
 
 const props = defineProps<{
   driver: Driver,

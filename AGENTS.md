@@ -87,12 +87,12 @@ moneysplit-web/      # Vue 3 SPA (Vite, PrimeVue, SCSS)
 src/
   components/    # Feature/page-level components (LandingPage, GroupView, GroupEditor, etc.)
   ui/            # Reusable presentational components (Flex, Icon, Balance, TransactionItem)
-  assets/icons/  # SVG icons imported as raw strings via ?raw
+  assets/symbols/  # SVG symbols imported as raw strings via ?raw
 ```
 
 - **Feature components** go in `src/components/`.
 - **Reusable UI primitives** go in `src/ui/`.
-- Icons are SVG files in `src/assets/icons/`, exported from `index.ts` using Vite's `?raw` import. Icon names use `icon_` prefix with snake_case (e.g., `icon_chevron_left`).
+- Symbols are SVG files in `src/assets/symbols/`, exported from `index.ts` using Vite's `?raw` import. Icon names use `icon_` prefix with snake_case (e.g., `icon_chevron_left`).
 
 ### Styling
 
@@ -124,7 +124,7 @@ src/
 - **PrimeVue 4** with the Aura theme (customized to a "Noir" slate-based preset).
 - Import PrimeVue components individually: `import { Button, Dialog, Drawer } from 'primevue'`.
 - Use the custom `<Flex>` component for flex layouts instead of raw divs. It accepts boolean props: `row`, `column`, `grow`, `wrap`, `align-center`, `justify-center`, `align-stretch`, etc.
-- Use the custom `<Icon>` component to render SVG icons: `<Icon :src="icon_name" />`.
+- Use the custom `<Icon>` component to render SVG Symbols: `<Icon :src="icon_name" />`.
 
 ### Driver / State Management
 
@@ -137,6 +137,7 @@ src/
 ### Path Aliases
 
 - `@/` maps to `src/` in the web package (configured in both `vite.config.js` and `tsconfig.json`).
+- Prefer using `@/` alias for imports in `moneysplit-web/src` when a relative import would require `..` to go outside the current directory. Local relative imports (e.g., `./LocalComponent.vue`) are acceptable and preferred for siblings.
 
 ## Build & Development
 

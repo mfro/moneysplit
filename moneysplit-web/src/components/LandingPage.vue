@@ -78,9 +78,9 @@ import { computed, onMounted, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
 import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/symbols';
 import { appState, localUserName, type OfflineGroup } from '@/localStorage';
+import { type Driver, WebSocketDriver } from '@/driver';
 import Icon from '@/ui/Icon.vue';
-import { type Driver, WebSocketDriver } from '../driver';
-import Flex from '../ui/Flex.vue';
+import Flex from '@/ui/Flex.vue';
 
 type KnownGroup = [string | null, OfflineGroup];
 

@@ -28,8 +28,8 @@ import { Button, Select } from 'primevue';
 import { assert, canAddPerson, type Person } from 'moneysplit-common';
 import type { Driver } from '@/driver';
 import { icon_save } from '@/assets/symbols';
-import Flex from '@/ui/Flex.vue';
-import Icon from '@/ui/Icon.vue';
+import Flex from './Flex.vue';
+import Icon from './Icon.vue';
 
 const props = defineProps<{
   driver: Driver,
@@ -52,21 +52,21 @@ const preview = computed<Person | null>(() => {
 });
 
 const canSave = computed(() => {
-  const existing = group.value.people.find(p => p.name == personName.value);
+  const existing = group.value.people.find(p => p.name === personName.value);
   if (existing) {
     return true;
   } else {
-    return !!preview.value
+    return preview.value !== null
       && canAddPerson(group.value, preview.value.name);
   }
 });
 
 function save() {
-  const existing = group.value.people.find(p => p.name == personName.value);
+  const existing = group.value.people.find(p => p.name === personName.value);
   if (existing) {
     emit('associate-person', existing);
   } else {
-    assert(!!preview.value, 'invalid save');
+    assert(preview.value !== null, 'invalid save');
     emit('add-person', preview.value);
   }
 }

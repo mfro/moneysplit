@@ -1,4 +1,4 @@
-import { ADD_PERSON, ADD_TRANSACTION, assert, newGroup, RatioParticipant, Transaction } from 'moneysplit-common'
+import { ADD_PERSON, ADD_TRANSACTION, assert, newGroup, type RatioParticipant, type Transaction } from 'moneysplit-common'
 import { readFileSync } from 'node:fs'
 
 export type TricountImport = {
@@ -151,28 +151,28 @@ function importTricount(fileName: string) {
     assert(cost % 1 === 0, `invalid amount: ${entry.amount.value} ${cost}`);
 
     const payerName = entry.membership_owned.RegistryMembershipNonUser.alias.display_name;
-    const payer = group.people.find(p => p.name == payerName);
-    assert(payer != null, `unknown participant: ${entry}`)
+    const payer = group.people.find(p => p.name === payerName);
+    assert(payer !== undefined, `unknown participant: ${entry}`)
 
     const participants: RatioParticipant[] = [];
     for (const allocation of entry.allocations) {
-      const person = group.people.find(p => p.name == allocation.membership.RegistryMembershipNonUser.alias.display_name);
-      assert(person != null, `unknown participant: ${entry}`)
+      const person = group.people.find(p => p.name === allocation.membership.RegistryMembershipNonUser.alias.display_name);
+      assert(person !== undefined, `unknown participant: ${entry}`)
 
-      if (allocation.type == 'RATIO') {
+      if (allocation.type === 'RATIO') {
         participants.push({
           person: person.id,
           ratio: allocation.share_ratio!,
         });
-      } else if (allocation.type == 'AMOUNT') {
+      } else if (allocation.type === 'AMOUNT') {
 
-        if (allocation.amount.value == '0.00') {
+        if (allocation.amount.value === '0.00') {
           // non-participant
         } else {
           const portion = Math.round(parseFloat(allocation.amount.value) * 100);
 
-          if (portion == cost) {
-            assert(entry.allocations.every(a => a.amount.value == '0.00' || a == allocation), '?');
+          if (portion === cost) {
+            assert(entry.allocations.every(a => a.amount.value === '0.00' || a === allocation), '?');
 
             participants.push({
               person: person.id,
@@ -200,7 +200,7 @@ function importTricount(fileName: string) {
       }
     }
 
-    if (participants.length != 2 || participants.some(p => p.ratio != 1)) {
+    if (participants.length !== 2 || participants.some(p => p.ratio !== 1)) {
       console.log(`${label} ${date} ${cost} ${payer.id}`)
       console.log(participants)
     }

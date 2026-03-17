@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue';
-import { type Driver } from './driver';
-import LandingPage from './components/LandingPage.vue';
-import GroupView from './components/GroupView.vue';
+import { type Driver } from '@/driver';
+import LandingPage from '@/components/LandingPage.vue';
+import GroupPage from '@/components/GroupPage.vue';
 
 const driver = shallowRef<Driver | null>(null);
 
@@ -44,7 +44,7 @@ function onClose() {
 
 <template>
   <LandingPage v-if="!driver" @connect="onConnect" />
-  <GroupView v-else :driver="driver" @close="onClose" />
+  <GroupPage v-else :driver="driver" @close="onClose" />
 
   <!-- <input type="file" accept="image/*"
          capture="environment"

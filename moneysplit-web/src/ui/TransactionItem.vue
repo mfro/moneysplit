@@ -3,7 +3,7 @@
         @click="emit('edit')"
         @touchstart="() => { /* needed for mobile to show click effects */ }">
 
-    <template v-if="transaction.type == 'expense'">
+    <template v-if="transaction.type === 'expense'">
 
       <Flex column align-start class="gap-1">
         <span class="transaction-label">
@@ -57,23 +57,23 @@ const emit = defineEmits<{
 }>();
 
 const summary = computed(() => {
-  if (props.transaction.type == 'expense') {
+  if (props.transaction.type === 'expense') {
     const payer = props.group.people.find(p => p.id === props.transaction.payer);
-    assert(!!payer, 'payer not found');
+    assert(payer !== undefined, 'payer not found');
 
     if (props.transaction.cost < 0) {
       return `Income to ${payer.name}`;
     } else {
       return `Paid by ${payer.name}`;
     }
-  } else if (props.transaction.type == 'exchange') {
+  } else if (props.transaction.type === 'exchange') {
     const transaction = props.transaction;
 
     const payer = props.group.people.find(p => p.id === transaction.payer);
-    assert(!!payer, 'payer not found');
+    assert(payer !== undefined, 'payer not found');
 
     const payee = props.group.people.find(p => p.id === transaction.payee);
-    assert(!!payee, 'payee not found');
+    assert(payee !== undefined, 'payee not found');
 
     return `${payer.name} paid ${payee.name} ${formatCost(transaction.value)}`;
   }
@@ -83,7 +83,7 @@ const preview = computed(() => {
   const localUser = props.group.people.find(p => p.name === localUserName.value);
   if (!localUser) return null;
 
-  if (props.transaction.type == 'expense') {
+  if (props.transaction.type === 'expense') {
     const split = computeSplit(props.transaction.cost, props.transaction.split);
     const index = props.transaction.split.participants.findIndex(p => p.person === localUser.id)
 
@@ -98,7 +98,7 @@ const preview = computed(() => {
     if (paid === portion) return null;
 
     return paid - portion;
-  } else if (props.transaction.type == 'exchange') {
+  } else if (props.transaction.type === 'exchange') {
     return null;
   }
 });

@@ -31,8 +31,8 @@ import { Button, InputText } from 'primevue';
 import { canAddPerson, canDeletePerson, canUpdatePerson, type Person } from 'moneysplit-common';
 import type { Driver } from '@/driver';
 import { icon_delete, icon_save } from '@/assets/symbols';
-import Flex from '@/ui/Flex.vue';
-import Icon from '@/ui/Icon.vue';
+import Flex from './Flex.vue';
+import Icon from './Icon.vue';
 
 const props = defineProps<{
   driver: Driver,
