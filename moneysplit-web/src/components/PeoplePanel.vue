@@ -61,7 +61,7 @@ import { Button, Dialog } from 'primevue';
 import { toDataURL } from 'qrcode';
 import { ADD_PERSON, assert, computeBalances, computeSplit, delay, DELETE_PERSON, UPDATE_PERSON, zip, type Group, type Person } from 'moneysplit-common';
 import { type Driver } from '../driver';
-import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/icons';
+import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import Balance from '@/ui/Balance.vue';

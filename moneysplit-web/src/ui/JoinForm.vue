@@ -27,7 +27,7 @@ import { computed, shallowRef } from 'vue';
 import { Button, Select } from 'primevue';
 import { assert, canAddPerson, type Person } from 'moneysplit-common';
 import type { Driver } from '@/driver';
-import { icon_save } from '@/assets/icons';
+import { icon_save } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 

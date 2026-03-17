@@ -34,7 +34,7 @@ import { computed, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
 import { RENAME_GROUP, type Group } from 'moneysplit-common';
 import type { Driver } from '@/driver';
-import { icon_save, icon_undo } from '@/assets/icons';
+import { icon_save, icon_undo } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import PeoplePanel from './PeoplePanel.vue';

@@ -113,7 +113,7 @@ import { clone, computeSplit, isValidTransaction, type Person, type RatioPartici
 import { formatCost } from '@/util';
 import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
-import { icon_arrow_downward, icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/icons';
+import { icon_arrow_downward, icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 

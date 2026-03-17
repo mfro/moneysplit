@@ -155,7 +155,7 @@ import { Button, Dialog, Drawer } from 'primevue';
 import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from 'moneysplit-common';
 import { type Driver } from '../driver';
 import { localUserName } from '@/localStorage';
-import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/icons';
+import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';

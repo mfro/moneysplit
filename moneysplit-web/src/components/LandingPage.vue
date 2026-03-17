@@ -1,7 +1,9 @@
 <template>
   <Flex column class="landing-content py-6">
     <Flex column align-center>
-      <h1 class="landing-title mb-2">Money<span>Split</span></h1>
+      <h1 class="landing-title mb-2">
+        Money<span>Split</span> <span>(beta)</span>
+      </h1>
 
       <InputText class="mb-6" v-model="localUserName" id="localUserName"
                  placeholder="Put your name here" />
@@ -40,28 +42,33 @@
         </template>
       </template>
 
-      <Button @click="createGroup" style="align-self: center" class="mt-4">
+      <Button @click="createGroup" style="align-self: center" class="mt-2">
         <Icon :src="icon_add" />
         New Group
       </Button>
+    </Flex>
 
-      <Flex grow />
+    <Flex grow />
 
-      <div class="ma-4">
-        <h4>
-          Tips
-        </h4>
-        <p class="mt-2">
-          This website works offline.
-        </p>
-        <p class="mt-2">
-          Make sure to open it once you get back online to sync your changes.
-        </p>
-        <p class="mt-2">
-          Make sure to open this in a browser app, not in an embedded browser
-          within an app.
-        </p>
-      </div>
+    <div class="ma-4">
+      <h4>
+        Tips
+      </h4>
+      <p class="mt-2">
+        This website works offline.
+      </p>
+      <p class="mt-2">
+        Make sure to open it once you get back online to sync your changes.
+      </p>
+      <p class="mt-2">
+        Make sure to open this in a browser app, not in an embedded browser
+        within an app.
+      </p>
+    </div>
+
+    <Flex justify-center>
+      <a class="github" area-label="github" target="_blank"
+         href="https://github.com/mfro/moneysplit"></a>
     </Flex>
   </Flex>
 </template>
@@ -69,7 +76,7 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
-import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/icons';
+import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/symbols';
 import { appState, localUserName, type OfflineGroup } from '@/localStorage';
 import Icon from '@/ui/Icon.vue';
 import { type Driver, WebSocketDriver } from '../driver';
@@ -125,14 +132,14 @@ const allGroups = computed(() => {
   font-size: 2.5rem;
   font-weight: 700;
 
-  span {
+  > span:first-child {
     color: var(--accent-color);
   }
-}
 
-.landing-subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
+  > span:last-child {
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
 }
 
 .known-group {
@@ -144,5 +151,15 @@ const allGroups = computed(() => {
   &:not(.editing) {
     @include interactive-list-item;
   }
+}
+
+.github {
+  width: 1.6em;
+  height: 1.6em;
+  background-size: 1.5em;
+  background-image: url("../assets/GitHub.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
 }
 </style>
