@@ -61,7 +61,7 @@
         Make sure to open it once you get back online to sync your changes.
       </p>
       <p class="mt-2">
-        Make sure to open this in a browser app, not in an embedded browser
+        Make sure to open this in a browser, not an embedded browser
         within an app.
       </p>
     </div>
