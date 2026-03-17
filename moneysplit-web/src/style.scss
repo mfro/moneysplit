@@ -3,7 +3,7 @@ $text-unit: 1rem;
 
 :root {
   --text-primary: var(--p-text-color);
-  --text-secondary: var(--p-text-hover-color);
+  --text-secondary: color-mix(in srgb, var(--p-text-color), var(--p-text-muted-color) 60%);
   --text-muted: var(--p-text-muted-color);
 
   --positive-color: var(--p-emerald-600);

@@ -3,7 +3,7 @@
     <Flex column class="gap-1" style="overflow-y: auto">
       <Flex v-for="person in group.people"
             row align-center class="gap-2 pa-2 person"
-            @click="editingMember = person">
+            @click="editingPerson = person">
         <Flex column class="gap-1">
           <span>{{ person.name }}</span>
           <Balance class="balance-preview" :value="balances.get(person.id)!" />
@@ -17,24 +17,24 @@
         Share
       </Button>
 
-      <Button @click="addingMember = true">
+      <Button @click="addingPerson = true">
         <Icon :src="icon_person_add" />
         Add Member
       </Button>
     </Flex>
 
-    <Dialog modal header="Add Member" v-model:visible="addingMember"
+    <Dialog modal header="Add Member" v-model:visible="addingPerson"
             style="width: calc(100svw - 1.5rem)">
 
       <PersonEditor :driver="driver" :model-value="null"
                     @update:model-value="addPerson" />
     </Dialog>
 
-    <Dialog modal header="Edit Member" :visible="!!editingMember"
-            @update:visible="editingMember = undefined"
+    <Dialog modal header="Edit Member" :visible="!!editingPerson"
+            @update:visible="editingPerson = undefined"
             style="width: calc(100svw - 1.5rem)">
 
-      <PersonEditor :driver="driver" :model-value="editingMember ?? null"
+      <PersonEditor :driver="driver" :model-value="editingPerson ?? null"
                     @update:model-value="savePerson" />
     </Dialog>
 
@@ -64,33 +64,33 @@ import { icon_check, icon_copy_all, icon_link, icon_person_add } from '@/assets/
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import Balance from '@/ui/Balance.vue';
-import PersonEditor from './PersonEditor.vue';
+import PersonEditor from '../ui/PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
   group: Group;
 }>();
 
-const addingMember = shallowRef(false);
-const editingMember = shallowRef<Person>();
+const addingPerson = shallowRef(false);
+const editingPerson = shallowRef<Person>();
 function addPerson(person: Person | null) {
   if (person) {
     props.driver.apply(ADD_PERSON, person);
   }
 
-  addingMember.value = false;
+  addingPerson.value = false;
 }
 
 function savePerson(person: Person | null) {
-  assert(!!editingMember.value, 'invalid save transaction');
+  assert(!!editingPerson.value, 'invalid save transaction');
 
   if (person) {
     props.driver.apply(UPDATE_PERSON, person);
   } else {
-    props.driver.apply(DELETE_PERSON, editingMember.value.id);
+    props.driver.apply(DELETE_PERSON, editingPerson.value.id);
   }
 
-  editingMember.value = undefined;
+  editingPerson.value = undefined;
 }
 
 const balances = computed(() => computeBalances(props.group));

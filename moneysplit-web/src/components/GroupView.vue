@@ -86,11 +86,11 @@
         </p>
       </Flex>
 
-      <Dialog modal header="Join Group" v-model:visible="addingMember"
+      <Dialog modal header="Join Group" v-model:visible="addingPerson"
               style="width: calc(100svw - 1.5rem)">
 
-        <PersonEditor :driver="driver" :model-value="null"
-                      @update:model-value="addPerson" joining />
+        <JoinForm :driver="driver" @add-person="addPerson"
+                  @associate-person="associatePerson" />
       </Dialog>
 
       <Drawer position="bottom" header="Add Transaction" :dismissable="false"
@@ -167,7 +167,7 @@ import Icon from '@/ui/Icon.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
 import TransactionEditor from '@/ui/TransactionEditor.vue';
 import GroupEditor from './GroupEditor.vue';
-import PersonEditor from './PersonEditor.vue';
+import JoinForm from '@/ui/JoinForm.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -255,24 +255,27 @@ function saveTransaction(transaction: Transaction | null) {
 const showJoinButton = computed(() => !localUser.value);
 function joinGroup() {
   if (!localUserName.value?.trim()) {
-    addingMember.value = true;
+    addingPerson.value = true;
   } else {
     const name = localUserName.value;
     props.driver.apply(ADD_PERSON, { name });
   }
 }
 
-const addingMember = shallowRef(false);
-function addPerson(person: Person | null) {
-  if (person) {
-    props.driver.apply(ADD_PERSON, person);
-
-    if (!localUserName.value?.trim()) {
-      localUserName.value = person.name;
-    }
+const addingPerson = shallowRef(false);
+function addPerson(newPerson: Person) {
+  if (newPerson) {
+    props.driver.apply(ADD_PERSON, newPerson);
+    localUserName.value = newPerson.name;
   }
 
-  addingMember.value = false;
+  addingPerson.value = false;
+}
+
+function associatePerson(person: Person) {
+  localUserName.value = person.name;
+
+  addingPerson.value = false;
 }
 </script>
 

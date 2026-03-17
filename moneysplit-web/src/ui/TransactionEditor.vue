@@ -38,11 +38,23 @@
                   :class="{ active: person === payer }" />
 
             <Flex grow column class="gap-1">
-              <span>{{ person.name }}</span>
-              <span class="split-preview" v-if="getPreview(person.id)">
-                {{ formatCost(getPreview(person.id)!) }}
+              <span>
+                {{ person.name }}
               </span>
-              <span class="split-preview" v-else>&nbsp;</span>
+              <Flex justify-space-between>
+                <span class="split-preview"
+                      v-if="person === payer && cost !== null">
+                  {{ person === payer && cost !== null
+                    ? ` ${mode == 'Income' ? 'Received' : 'Paid'}
+                  ${formatCost(Math.abs(cost))}`
+                    : '' }}
+                </span>
+                <span class="split-preview" v-else>&nbsp;</span>
+
+                <span class="split-preview" v-if="getPreview(person.id)">
+                  {{ formatCost(getPreview(person.id)!) }}
+                </span>
+              </Flex>
             </Flex>
           </Flex>
 
@@ -52,11 +64,11 @@
                         @update:model-value="toggleParticipant(person.id)" />
             </InputGroupAddon>
 
-            <InputNumber :model-value="getParticipant(person.id)?.ratio ?? 0"
+            <InputNumber :model-value="getParticipant(person.id)?.ratio ?? null"
                          @input="e => getParticipant(person.id)!.ratio = (e.value as number)"
                          :disabled="!isParticipant(person.id)"
                          :max-fraction-digits="20"
-                         style="max-width: 10ch" />
+                         style="max-width: 8ch" />
           </InputGroup>
         </Flex>
       </Flex>
@@ -162,6 +174,7 @@ const date = ref(props.modelValue?.date ?? new Date());
 const payer = ref(
   group.value.people.find(p => p.id === props.modelValue?.payer)
   ?? group.value.people.find(p => p.name === localUserName.value)
+  ?? group.value.people[0]
   ?? null);
 
 function initPayee() {
@@ -212,7 +225,7 @@ const preview = computed<Transaction | null>(() => {
       return {
         type: 'expense',
         id: props.modelValue?.id ?? group.value.nextId,
-        label: label.value,
+        label: label.value.trim(),
         cost: cost.value,
         date: date.value,
         payer: payer.value.id,
@@ -278,7 +291,7 @@ function getParticipant(id: number) {
 }
 
 watchEffect(() => {
-  const zeros = participants.value.filter(p => !p.ratio);
+  const zeros = participants.value.filter(p => p.ratio === 0);
   for (const p of zeros) toggleParticipant(p.person);
 });
 
@@ -309,6 +322,7 @@ function remove() {
 
   > .payer-icon {
     opacity: 0.25;
+    margin: 0 -0.5rem;
 
     &.active {
       opacity: 1;

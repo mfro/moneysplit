@@ -1,12 +1,12 @@
 <template>
-  <Flex column class="gap-2 mb-2">
-    <label for="memberName">
+  <Flex column class="gap-2">
+    <label for="personName">
       {{ joining ? 'Enter your name' : 'Member name' }}
     </label>
-    <InputText v-model="memberName" id="memberName"/>
+    <InputText v-model="personName" id="personName"/>
   </Flex>
 
-  <Flex>
+  <Flex class="mt-2">
     <template v-if="modelValue">
       <Button @click="emit('update:modelValue', null)"
               :disabled="!canDeletePerson(group, modelValue.id)"
@@ -46,12 +46,12 @@ const emit = defineEmits<{
 
 const group = computed(() => props.driver.state.group!);
 
-const memberName = shallowRef(props.modelValue?.name ?? '')
+const personName = shallowRef(props.modelValue?.name ?? '')
 
 const preview = computed<Person | null>(() => {
   return {
     id: props.modelValue?.id ?? props.driver.state.group!.nextId,
-    name: memberName.value,
+    name: personName.value.trim(),
   }
 });
 
@@ -61,7 +61,7 @@ const canSave = computed(() => {
   if (props.modelValue) {
     return canUpdatePerson(group.value, preview.value);
   } else {
-    return canAddPerson(group.value, memberName.value);
+    return canAddPerson(group.value, personName.value);
   }
 });
 </script>
