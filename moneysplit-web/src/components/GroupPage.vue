@@ -115,16 +115,15 @@
         <GroupDetails :driver="driver" :model-value="group" />
       </Drawer>
 
-      <Flex row align-center justify-center class="gap-2 add-button-container"
-            v-if="group.people.length">
-        <Button @click="() => newTransaction = true">
-          <Icon :src="icon_add_notes" />
-          Add transaction
-        </Button>
-
+      <Flex row align-center justify-center class="gap-2 button-container">
         <Button @click="joinGroup()" v-if="showJoinButton">
           <Icon :src="icon_person_add" />
           Join
+        </Button>
+
+        <Button @click="() => newTransaction = true" v-else>
+          <Icon :src="icon_add_notes" />
+          Add transaction
         </Button>
       </Flex>
     </template>
@@ -247,21 +246,15 @@ function saveTransaction(transaction: Transaction | null) {
 
 
 const showJoinButton = computed(() => !localUser.value);
+const addingPerson = shallowRef(false);
+
 function joinGroup() {
-  if (!localUserName.value?.trim()) {
     addingPerson.value = true;
-  } else {
-    const name = localUserName.value;
-    props.driver.apply(ADD_PERSON, { name });
-  }
 }
 
-const addingPerson = shallowRef(false);
 function addPerson(newPerson: Person) {
-  if (newPerson) {
-    props.driver.apply(ADD_PERSON, newPerson);
-    localUserName.value = newPerson.name;
-  }
+  props.driver.apply(ADD_PERSON, newPerson);
+  localUserName.value = newPerson.name;
 
   addingPerson.value = false;
 }
@@ -347,7 +340,7 @@ $syncDuration: 4000ms;
   color: var(--text-secondary);
 }
 
-.add-button-container {
+.button-container {
   position: fixed;
   bottom: 2rem;
   left: 2rem;
