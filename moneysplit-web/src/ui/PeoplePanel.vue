@@ -124,9 +124,6 @@ async function showShareDialog() {
 .balance-preview {
   color: var(--text-secondary);
   font-size: 0.8rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .person {

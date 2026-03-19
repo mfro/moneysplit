@@ -1,8 +1,8 @@
+/moneysplit-server/main.js
+/moneysplit-server/data/
 /moneysplit-web/stats.html
 /moneysplit-web/dist/
 /moneysplit-web/gh-pages/
-/moneysplit-server/main.js
-/moneysplit-server/data/
 
 # Logs
 logs

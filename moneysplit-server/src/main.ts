@@ -1,4 +1,3 @@
-import { appendFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 
@@ -16,43 +15,33 @@ const wss = new WebSocketServer({ server });
 
 const manager = new GroupManager();
 
-wss.on('connection', (ws, req) => {
+wss.on('connection', (socket, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let version = url.searchParams.get('version');
   if (version !== VERSION.toString()) {
     console.log(`version mismatch: ${version}`);
-    ws.close(4004, CLOSE_REASON_VERSION_MISMATCH)
+    socket.close(4004, CLOSE_REASON_VERSION_MISMATCH)
     return;
   }
+
+  let instance;
 
   let token = url.searchParams.get('token');
-  if (!token) {
-    token = manager.createGroup();
-    console.log(`group created: ${token}`);
+  if (token) {
+    instance = manager.findGroup(token);
+
+    if (!instance) {
+      console.log(`group not found: ${token}`);
+      socket.close(4004, CLOSE_REASON_GROUP_NOT_FOUND);
+      return;
+    }
+  } else {
+    instance = manager.createGroup();
+    console.log(`group created: ${instance.token}`);
   }
 
-  const success = manager.addClient(token, ws);
-  if (!success) {
-    console.log(`group not found: ${token}`);
-    ws.close(4004, CLOSE_REASON_GROUP_NOT_FOUND);
-    return;
-  }
-
-  ws.on('message', async (data) => {
-    await appendFile('data/log.txt', `${token} ${data.toString()}\n`);
-
-    manager.handleMessage(token, ws, data.toString());
-  });
-
-  ws.on('close', () => {
-    manager.removeClient(token, ws);
-  });
-
-  ws.on('error', (err) => {
-    console.error(`WebSocket error in group ${token}:`, err);
-    manager.removeClient(token, ws);
-  });
+  instance.addClient(socket);
 });
 
 server.listen(port, () => {

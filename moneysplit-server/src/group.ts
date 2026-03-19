@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFile } from 'node:fs/promises';
 import type { WebSocket } from 'ws';
 import sqlite3, { Database } from 'better-sqlite3';
 
@@ -15,12 +17,33 @@ interface DatabaseEntry {
   content: string
 }
 
-export class GroupManager {
-  private groups = new Map<string, GroupState>();
-  private db: Database
+export interface Metadata {
+  version?: number;
+}
 
-  constructor() {
-    this.db = sqlite3('data/db.sqlite');
+const DATABASE_FILE = 'data/db.sqlite';
+const METADATA_FILE = 'data/metadata.json';
+
+function loadMetadata(): Metadata {
+  try {
+    const raw = readFileSync(METADATA_FILE, 'utf8');
+    return deserialize(JSON.parse(raw));
+  } catch {
+    return {};
+  }
+}
+
+function saveMetadata(value: Metadata) {
+  writeFileSync(METADATA_FILE, JSON.stringify(serialize(value)), 'utf8');
+}
+
+export class GroupManager {
+  private groups = new Map<string, GroupInstance>();
+  private db: Database;
+
+  constructor(
+  ) {
+    this.db = sqlite3(DATABASE_FILE);
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS groups (
@@ -29,22 +52,56 @@ export class GroupManager {
         content TEXT NOT NULL
       );
     `);
+
+    const metadata = loadMetadata();
+
+    if (metadata.version !== VERSION) {
+      console.log(`running migration ${metadata.version} -> ${VERSION}`);
+
+      while (true) {
+        const batch = this.db
+          .prepare<[number], DatabaseEntry>('SELECT * FROM groups WHERE version != ? LIMIT 1000;')
+          .all(VERSION);
+
+        if (batch.length == 0) break;
+
+        for (const entry of batch) {
+          const group: Group = deserialize(JSON.parse(entry['content']));
+
+          if (Array.isArray(group)) {
+            // legacy clean up
+            this.db
+              .prepare<[string], DatabaseEntry>('DELETE FROM groups WHERE token = ?;')
+              .run(entry['token']);
+          } else {
+            doMigrations(metadata.version ?? 0, group);
+
+            this.save(entry['token'], group);
+          }
+        }
+      }
+
+      metadata.version = VERSION;
+      saveMetadata(metadata);
+    }
   }
 
-  createGroup(): string {
+  createGroup(): GroupInstance {
     const token = randomUUID();
     const group = newGroup();
 
-    this.groups.set(token, { group, clients: new Set() });
+    const instance = new GroupInstance(this, token, group, new Set());
 
     this.db
       .prepare<[string, number, string]>('INSERT INTO groups (token, version, content) VALUES (?, ?, ?);')
       .run(token, VERSION, JSON.stringify(serialize(group)));
 
-    return token;
+    this.groups.set(token, instance);
+
+    return instance;
   }
 
-  getGroup(token: string): GroupState | undefined {
+  findGroup(token: string): GroupInstance | null {
     const existing = this.groups.get(token);
     if (existing !== undefined) return existing;
 
@@ -53,69 +110,95 @@ export class GroupManager {
       .get(token);
 
     if (persisted !== undefined) {
-      const version = persisted['version'] ?? 0;
+      assert(persisted['version'] === VERSION, 'invalid load');
+
       const group: Group = deserialize(JSON.parse(persisted['content']));
 
-      doMigrations(version, group);
+      const instance = new GroupInstance(this, token, group, new Set());
 
-      this.groups.set(token, { group, clients: new Set() });
-
-      for (const transaction of group.transactions) {
-        if (!('id' in (transaction as any))) {
-          transaction.id = ++group.nextId;
-        }
-      }
+      this.groups.set(token, instance);
     }
 
-    return this.groups.get(token);
+    return this.groups.get(token) ?? null;
   }
 
-  addClient(token: string, ws: WebSocket): boolean {
-    const state = this.getGroup(token);
-    if (state === undefined) return false;
+  save(token: string, group: Group) {
+    this.db
+      .prepare<[string, number, string]>('UPDATE groups SET content = ?, version = ? WHERE token = ?;')
+      .run(JSON.stringify(serialize(group)), VERSION, token);
+  }
+}
 
-    state.clients.add(ws);
+export class GroupInstance {
+  constructor(
+    readonly manager: GroupManager,
+    readonly token: string,
+    readonly group: Group,
+    readonly clients: Set<Connection>,
+  ) { }
+
+  addClient(socket: WebSocket) {
+    const connection = new Connection(this, socket);
+
+    this.clients.add(connection);
 
     const initMessage: Message = {
       type: 'init',
-      token,
-      group: state.group,
+      token: this.token,
+      group: this.group,
     };
 
-    ws.send(JSON.stringify(serialize(initMessage)));
-    return true;
+    socket.send(JSON.stringify(serialize(initMessage)));
   }
 
-  removeClient(token: string, ws: WebSocket) {
-    const state = this.groups.get(token);
-    if (state === undefined) return;
-
-    state.clients.delete(ws);
+  removeClient(connection: Connection) {
+    this.clients.delete(connection);
   }
 
-  handleMessage(token: string, ws: WebSocket, raw: string) {
-    const state = this.groups.get(token);
-    if (state === undefined) return;
-
+  handleMessage(raw: string) {
     const message = deserialize(JSON.parse(raw)) as Message;
 
-    if (message.type !== 'apply') return;
+    assert(message.type === 'apply', 'invalid message type');
 
     try {
       const op = operations.get(message.op);
       assert(op !== undefined, 'unknown operation');
 
-      op.impl(state.group, ...message.args);
+      op.impl(this.group, ...message.args);
 
-      this.db
-        .prepare<[string, number, string]>('UPDATE groups SET content = ?, version = ? WHERE token = ?;')
-        .run(JSON.stringify(serialize(state.group)), VERSION, token);
+      this.manager.save(this.token, this.group);
 
-      for (const client of state.clients) {
+      for (const client of this.clients) {
         client.send(raw);
       }
     } catch (e) {
       console.error(e);
     }
+  }
+}
+
+class Connection {
+  constructor(
+    readonly instance: GroupInstance,
+    readonly socket: WebSocket,
+  ) {
+    socket.on('message', async (data) => {
+      await appendFile('data/log.txt', `${instance.token} ${data.toString()}\n`);
+
+      instance.handleMessage(data.toString());
+    });
+
+    socket.on('close', () => {
+      instance.removeClient(this);
+    });
+
+    socket.on('error', (err) => {
+      console.error(`WebSocket error in group ${instance.token}:`, err);
+      instance.removeClient(this);
+    });
+  }
+
+  send(raw: string) {
+    this.socket.send(raw);
   }
 }
