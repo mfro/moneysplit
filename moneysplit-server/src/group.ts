@@ -4,7 +4,7 @@ import { appendFile } from 'node:fs/promises';
 import type { WebSocket } from 'ws';
 import sqlite3, { Database } from 'better-sqlite3';
 
-import { serialize, deserialize, operations, assert, type Group, type Message, newGroup, doMigrations, VERSION } from 'moneysplit-common';
+import { serialize, deserialize, operations, assert, type Group, type Message, newGroup, doMigrations, CURRENT_VERSION } from 'moneysplit-common';
 
 export interface GroupState {
   group: Group;
@@ -55,13 +55,13 @@ export class GroupManager {
 
     const metadata = loadMetadata();
 
-    if (metadata.version !== VERSION) {
-      console.log(`running migration ${metadata.version} -> ${VERSION}`);
+    if (metadata.version !== CURRENT_VERSION) {
+      console.log(`running migration ${metadata.version} -> ${CURRENT_VERSION}`);
 
       while (true) {
         const batch = this.db
           .prepare<[number], DatabaseEntry>('SELECT * FROM groups WHERE version != ? LIMIT 1000;')
-          .all(VERSION);
+          .all(CURRENT_VERSION);
 
         if (batch.length == 0) break;
 
@@ -81,7 +81,7 @@ export class GroupManager {
         }
       }
 
-      metadata.version = VERSION;
+      metadata.version = CURRENT_VERSION;
       saveMetadata(metadata);
     }
   }
@@ -94,7 +94,7 @@ export class GroupManager {
 
     this.db
       .prepare<[string, number, string]>('INSERT INTO groups (token, version, content) VALUES (?, ?, ?);')
-      .run(token, VERSION, JSON.stringify(serialize(group)));
+      .run(token, CURRENT_VERSION, JSON.stringify(serialize(group)));
 
     this.groups.set(token, instance);
 
@@ -110,7 +110,7 @@ export class GroupManager {
       .get(token);
 
     if (persisted !== undefined) {
-      assert(persisted['version'] === VERSION, 'invalid load');
+      assert(persisted['version'] === CURRENT_VERSION, 'invalid load');
 
       const group: Group = deserialize(JSON.parse(persisted['content']));
 
@@ -125,7 +125,7 @@ export class GroupManager {
   save(token: string, group: Group) {
     this.db
       .prepare<[string, number, string]>('UPDATE groups SET content = ?, version = ? WHERE token = ?;')
-      .run(JSON.stringify(serialize(group)), VERSION, token);
+      .run(JSON.stringify(serialize(group)), CURRENT_VERSION, token);
   }
 }
 

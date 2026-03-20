@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 
 import { GroupManager } from './group';
-import { CLOSE_REASON_GROUP_NOT_FOUND, CLOSE_REASON_VERSION_MISMATCH, VERSION } from 'moneysplit-common';
+import { CLOSE_REASON_GROUP_NOT_FOUND, CLOSE_REASON_VERSION_MISMATCH, CURRENT_VERSION } from 'moneysplit-common';
 
 const port = parseInt(process.argv[2]);
 
@@ -19,7 +19,7 @@ wss.on('connection', (socket, req) => {
   const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
   let version = url.searchParams.get('version');
-  if (version !== VERSION.toString()) {
+  if (version !== CURRENT_VERSION.toString()) {
     console.log(`version mismatch: ${version}`);
     socket.close(4004, CLOSE_REASON_VERSION_MISMATCH)
     return;

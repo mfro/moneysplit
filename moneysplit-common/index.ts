@@ -7,10 +7,10 @@ export * from './model';
 export * from './operations';
 export * from './socket';
 
-export const VERSION = 2;
+export const CURRENT_VERSION = 2;
 
 export function doMigrations(version: number, group: Group) {
-  if (version === VERSION) return;
+  if (version === CURRENT_VERSION) return;
 
   for (const transaction of group.transactions) {
     transaction.type = 'expense';

@@ -1,5 +1,5 @@
 import { customRef, reactive, toRaw, watch } from 'vue';
-import { deserialize, doMigrations, serialize, VERSION, type Group } from 'moneysplit-common';
+import { deserialize, doMigrations, serialize, CURRENT_VERSION, type Group } from 'moneysplit-common';
 
 export const localStorage = {
   get(name: string, rawString = false) {
@@ -79,13 +79,13 @@ export interface OfflineApply {
 export const appState = persist<AppState>(
   'mfro:moneysplit:state',
   () => ({
-    version: VERSION,
+    version: CURRENT_VERSION,
     newGroups: [],
     knownGroups: {},
   }),
 );
 
-if (appState.version !== VERSION) {
+if (appState.version !== CURRENT_VERSION) {
   for (const entry of [...appState.newGroups, ...Object.values(appState.knownGroups)]) {
     doMigrations(appState.version ?? 0, entry.group);
   }
@@ -93,4 +93,4 @@ if (appState.version !== VERSION) {
   window.localStorage.removeItem('mfro:moneysplit:knownGroups');
 }
 
-appState.version = VERSION;
+appState.version = CURRENT_VERSION;

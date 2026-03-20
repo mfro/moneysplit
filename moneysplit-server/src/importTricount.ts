@@ -128,7 +128,7 @@ export type TricountImport = {
   }>
 }
 
-function importTricount(fileName: string) {
+export function importTricount(fileName: string) {
   const raw = readFileSync(fileName, 'utf8');
   const data = JSON.parse(raw) as TricountImport;
 
