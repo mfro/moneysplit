@@ -17,7 +17,7 @@ interface DatabaseEntry {
   content: string
 }
 
-export interface Metadata {
+interface Metadata {
   version?: number;
 }
 
@@ -74,7 +74,7 @@ export class GroupManager {
               .prepare<[string], DatabaseEntry>('DELETE FROM groups WHERE token = ?;')
               .run(entry['token']);
           } else {
-            doMigrations(metadata.version ?? 0, group);
+            doMigrations(entry['version'] ?? 0, group);
 
             this.save(entry['token'], group);
           }

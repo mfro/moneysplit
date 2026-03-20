@@ -39,7 +39,8 @@
                   :class="{ active: person === payer }" />
 
             <Flex grow column class="gap-1">
-              <span>
+              <span class="participant-name"
+                    :class="{ inactive: !getParticipant(person.id) && payer !== person }">
                 {{ person.name }}
               </span>
               <Flex justify-space-between>
@@ -318,6 +319,12 @@ function remove() {
 
 <style scoped lang="scss">
 @use "@/common.scss" as *;
+
+.participant-name {
+  &.inactive {
+    opacity: 0.25;
+  }
+}
 
 .split-preview {
   color: var(--text-secondary);

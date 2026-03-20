@@ -1,3 +1,7 @@
+- new user experience?
+  new user lands on an intro screen whether they follow a group link or navigate directly
+  this experience explains the app and prompts for user name
+
 - currencies
   - each transaction has a currency associated with in
   - show separate balance for each currency

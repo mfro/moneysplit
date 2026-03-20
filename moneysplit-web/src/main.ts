@@ -6,6 +6,10 @@ import App from '@/App.vue';
 import './style.scss';
 import { definePreset } from '@primeuix/themes';
 
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
+/// <reference types="vite-plugin-pwa/info" />
+
 const Noir = definePreset(Aura, {
   semantic: {
     primary: {
