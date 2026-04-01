@@ -3,17 +3,10 @@
   this experience explains the app and prompts for user name
 
 - currencies
-  - each transaction has a currency associated with in
-  - show separate balance for each currency
-  - add a 'convert' button to the balance screen where you enter a conversion ratio and it auto-settles one currency and adds a transaction in the other currency
-
-    example: USD and 0.5USD converting to USD
-    before: -5 -5 / +5 +5
-    after: -15 0 / +15 0
-
-    transactions:
-      0.5USD: +5 / -5
-      USD +10 / -10
+  - each person specifies a default currency in their user state
+  - each transaction has a currency associated with it
+  - each currency is tracked in a separate balance for the group
+  - add a 'convert' button to the balance screen where you enter a conversion ratio and it adds transactions to auto-settle one currency and convert the balance into another
 
 - make connection global rather than group-specific?
 
