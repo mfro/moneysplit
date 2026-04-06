@@ -11,6 +11,10 @@ $text-unit: 1rem;
 
   --accent-color: var(--p-blue-600);
   --danger-color: var(--p-red-600);
+
+  --interactive-background-color: var(--p-surface-100);
+  --interactive-hover-color: var(--p-surface-200);
+  --interactive-active-color: var(--p-surface-300);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,6 +24,10 @@ $text-unit: 1rem;
 
     --accent-color: var(--p-blue-400);
     --danger-color: var(--p-red-400);
+
+    --interactive-background-color: var(--p-surface-800);
+    --interactive-hover-color: var(--p-surface-700);
+    --interactive-active-color: var(--p-surface-600);
   }
 }
 

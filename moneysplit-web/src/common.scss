@@ -4,11 +4,11 @@
 
   @media (hover: hover) {
     &:hover {
-      background-color: color-mix(in srgb, var(--p-primary-color), transparent 80%);
+      background-color: var(--interactive-hover-color);
     }
   }
 
   &:active {
-    background-color: color-mix(in srgb, var(--p-primary-color), transparent 70%);
+    background-color: var(--interactive-active-color)
   }
 }
