@@ -1,3 +1,13 @@
+- search
+
+- stats/analysis
+
+- connection optimization
+  keep operation history and a hash of the state for each one
+  when connecting, send hash of the state
+  if any match send catch-up history
+  else send full state
+
 - new user experience?
   new user lands on an intro screen whether they follow a group link or navigate directly
   this experience explains the app and prompts for user name
