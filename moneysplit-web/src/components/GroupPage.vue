@@ -249,7 +249,7 @@ const showJoinButton = computed(() => !localUser.value);
 const addingPerson = shallowRef(false);
 
 function joinGroup() {
-    addingPerson.value = true;
+  addingPerson.value = true;
 }
 
 function addPerson(newPerson: Person) {

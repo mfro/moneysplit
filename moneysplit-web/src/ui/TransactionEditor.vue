@@ -90,6 +90,13 @@
       </Flex>
     </template>
 
+    <Flex row justify-center>
+      <Button @click="addingPerson = true">
+        <Icon :src="icon_person_add" />
+        Add New Member
+      </Button>
+    </Flex>
+
     <Flex row class="gap-2">
       <Button v-if="modelValue" @click="remove" severity="danger">
         <Icon :src="icon_delete" />
@@ -104,19 +111,50 @@
         Save
       </Button>
     </Flex>
+
+    <Flex column>
+      <template v-if="group.people.length <= 1">
+        <Flex align-center>
+          <Icon :src="icon_warning" class="mr-2"
+                style="margin: -100% 0; color: var(--danger-color)" />
+          <h3>
+            Are you sure?
+          </h3>
+        </Flex>
+
+        <p class="mt-1 mb-4">
+          Any members you add to the group later will not be included.
+        </p>
+
+        <p class="mt-1 mb-4">
+          You can manage group members from the
+          <Icon :src="icon_more_horiz"
+                style="margin: -100% 0; vertical-align: middle; display: inline-block;" />
+          menu on the group home page
+        </p>
+      </template>
+    </Flex>
   </Flex>
+
+  <Dialog modal header="Add Member" v-model:visible="addingPerson"
+          style="width: calc(100svw - 1.5rem)">
+
+    <PersonEditor :driver="driver" :model-value="null"
+                  @update:model-value="addPerson" />
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, shallowRef, watch, watchEffect } from 'vue';
-import { Button, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton } from 'primevue';
-import { clone, computeSplit, isValidTransaction, type Person, type RatioParticipant, type Transaction } from 'moneysplit-common';
+import { Button, DatePicker, InputGroup, InputGroupAddon, InputNumber, InputText, KeyFilter as vKeyfilter, Select, SelectButton, Dialog } from 'primevue';
+import { ADD_PERSON, clone, computeSplit, isValidTransaction, type Person, type RatioParticipant, type Transaction } from 'moneysplit-common';
 import { formatCost } from '@/util';
 import type { Driver } from '@/driver';
 import { localUserName } from '@/localStorage';
-import { icon_arrow_downward, icon_attach_money, icon_delete, icon_event, icon_person, icon_save } from '@/assets/symbols';
+import { icon_arrow_downward, icon_attach_money, icon_delete, icon_event, icon_more_horiz, icon_person, icon_person_add, icon_save, icon_warning } from '@/assets/symbols';
 import Flex from './Flex.vue';
 import Icon from './Icon.vue';
+import PersonEditor from './PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver,
@@ -128,6 +166,15 @@ const emit = defineEmits<{
 }>();
 
 const group = computed(() => props.driver.state.group!);
+
+const addingPerson = shallowRef(false);
+function addPerson(person: Person | null) {
+  if (person) {
+    props.driver.apply(ADD_PERSON, person);
+  }
+
+  addingPerson.value = false;
+}
 
 const modes = [
   'Expense',
