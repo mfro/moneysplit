@@ -114,8 +114,8 @@
       </Button>
     </Flex>
 
-    <Flex column>
-      <template v-if="group.people.length <= 1">
+    <template v-if="group.people.length <= 1">
+      <Flex column>
         <Flex align-center>
           <Icon :src="icon_warning" class="mr-2"
                 style="margin: -100% 0; color: var(--danger-color)" />
@@ -134,8 +134,8 @@
                 style="margin: -100% 0; vertical-align: middle; display: inline-block;" />
           menu on the group home page
         </p>
-      </template>
-    </Flex>
+      </Flex>
+    </template>
   </Flex>
 
   <Dialog modal header="Add Member" v-model:visible="addingPerson"
