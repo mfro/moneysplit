@@ -90,12 +90,14 @@
       </Flex>
     </template>
 
-    <Flex row justify-center>
-      <Button @click="addingPerson = true">
-        <Icon :src="icon_person_add" />
-        Add New Member
-      </Button>
-    </Flex>
+    <template v-if="newGroupExperience">
+      <Flex row justify-center>
+        <Button @click="addingPerson = true">
+          <Icon :src="icon_person_add" />
+          Add New Member
+        </Button>
+      </Flex>
+    </template>
 
     <Flex row class="gap-2">
       <Button v-if="modelValue" @click="remove" severity="danger">
@@ -166,6 +168,8 @@ const emit = defineEmits<{
 }>();
 
 const group = computed(() => props.driver.state.group!);
+
+const newGroupExperience = group.value.people.length <= 1;
 
 const addingPerson = shallowRef(false);
 function addPerson(person: Person | null) {
@@ -353,6 +357,16 @@ function updateRatio(person: Person, value: string | number | undefined) {
 watchEffect(() => {
   const zeros = participants.value.filter(p => p.ratio === 0);
   for (const p of zeros) toggleParticipant(p.person);
+});
+
+const knownPeople = new Set(group.value.people.map(p => p.id));
+watch(group.value.people, people => {
+  for (const person of people) {
+    if (!knownPeople.has(person.id)) {
+      knownPeople.add(person.id);
+      toggleParticipant(person.id);
+    }
+  }
 });
 
 function save() {
