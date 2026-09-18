@@ -11,6 +11,7 @@ export { default as icon_link } from './link.svg?raw';
 export { default as icon_person_add } from './person_add.svg?raw';
 export { default as icon_check } from './check.svg?raw';
 export { default as icon_copy_all } from './copy_all.svg?raw';
+export { default as icon_price_check } from './price_check.svg?raw';
 export { default as icon_attach_money } from './attach_money.svg?raw';
 export { default as icon_event } from './event.svg?raw';
 export { default as icon_photo_camera } from './photo_camera.svg?raw';

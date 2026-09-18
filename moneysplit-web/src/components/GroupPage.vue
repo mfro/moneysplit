@@ -56,6 +56,35 @@
 
     <template v-if="group">
       <Flex column class="gap-2 transactions">
+        <template v-if="localBalance < 0">
+          <Flex align-center justify-center class="mt-3">
+            <span>
+              <span>You owe: </span>
+              <Balance :value="localBalance" class="transaction-preview" />
+            </span>
+
+            <Button class="ml-3" @click="settleUp()" v-if="canSettleUp">
+              <Icon :src="icon_price_check" />
+              Settle Up
+            </Button>
+          </Flex>
+        </template>
+
+        <template v-else-if="localBalance > 0">
+          <Flex align-center justify-center class="mt-3">
+            <span>
+              <span>You are owed: </span>
+              <Balance :value="localBalance" class="transaction-preview" />
+            </span>
+
+            <Button class="ml-3" @click="editLocalUser()"
+                    v-if="!localUser?.venmoUsername">
+              <Icon :src="icon_price_check" />
+              Add Venmo
+            </Button>
+          </Flex>
+        </template>
+
         <template v-for="{ date, entries } in schedule">
           <Flex class="px-3 mt-3">
             <label class="date-header">
@@ -85,6 +114,14 @@
           Start spending money
         </p>
       </Flex>
+
+      <Dialog modal header="Edit Member" :visible="editingPerson !== undefined"
+              @update:visible="editingPerson = undefined"
+              style="width: calc(100svw - 1.5rem)">
+
+        <PersonEditor :driver="driver" :model-value="editingPerson ?? null"
+                      @update:model-value="savePerson" />
+      </Dialog>
 
       <Dialog modal header="Join Group" v-model:visible="addingPerson"
               style="width: calc(100svw - 1.5rem)">
@@ -151,16 +188,18 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watchEffect } from 'vue';
 import { Button, Dialog, Drawer } from 'primevue';
-import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, dateEquals, DELETE_TRANSACTION, UPDATE_TRANSACTION, type Person, type Transaction } from 'moneysplit-common';
+import { ADD_PERSON, ADD_TRANSACTION, assert, CLOSE_REASON_GROUP_NOT_FOUND, computeBalances, dateEquals, DELETE_PERSON, DELETE_TRANSACTION, UPDATE_PERSON, UPDATE_TRANSACTION, type Person, type Transaction } from 'moneysplit-common';
 import { type Driver } from '@/driver';
-import { localUserName } from '@/localStorage';
-import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add } from '@/assets/symbols';
+import { localUserName, localVenmoUsername } from '@/localStorage';
+import { icon_add_notes, icon_chevron_left, icon_cloud_off, icon_more_horiz, icon_person_add, icon_price_check } from '@/assets/symbols';
 import Flex from '@/ui/Flex.vue';
 import Icon from '@/ui/Icon.vue';
 import TransactionItem from '@/ui/TransactionItem.vue';
 import TransactionEditor from '@/ui/TransactionEditor.vue';
 import JoinForm from '@/ui/JoinForm.vue';
 import GroupDetails from './GroupDetails.vue';
+import Balance from '@/ui/Balance.vue';
+import PersonEditor from '@/ui/PersonEditor.vue';
 
 const props = defineProps<{
   driver: Driver;
@@ -177,6 +216,19 @@ const localUser = computed(() => {
 });
 
 const isEditing = ref(false);
+
+watchEffect(() => {
+  if (localUser.value != null && group.value != null && localVenmoUsername.value != localUser.value.venmoUsername) {
+    if (localVenmoUsername.value) {
+      props.driver.apply(UPDATE_PERSON, {
+        ...localUser.value,
+        venmoUsername: localVenmoUsername.value,
+      });
+    } else if (localUser.value.venmoUsername) {
+      localVenmoUsername.value = localUser.value.venmoUsername;
+    }
+  }
+});
 
 function close() {
   emit('close');
@@ -263,6 +315,67 @@ function associatePerson(person: Person) {
   localUserName.value = person.name;
 
   addingPerson.value = false;
+}
+
+const editingPerson = shallowRef<Person>();
+function savePerson(person: Person | null) {
+  assert(editingPerson.value !== undefined, 'invalid save transaction');
+
+  if (person) {
+    props.driver.apply(UPDATE_PERSON, person);
+  } else {
+    props.driver.apply(DELETE_PERSON, editingPerson.value.id);
+  }
+
+  editingPerson.value = undefined;
+}
+
+
+const localBalance = computed(() => {
+  if (!group.value || !localUser.value) return 0;
+
+  var balances = computeBalances(group.value);
+
+  var localBalance = balances.get(localUser.value.id) ?? 0;
+  return localBalance;
+});
+
+const settling = computed(() => {
+  if (localBalance.value >= 0 || !group.value) return false;
+
+  var balances = computeBalances(group.value);
+  var entries = [...balances]
+    .filter(e => e[1] > 0)
+    .map(e => ({
+      user: group.value?.people.find(p => p.id == e[0]),
+      balance: e[1],
+    }))
+    .filter(e => e.user?.venmoUsername != null);
+
+  entries.sort((a, b) => b.balance - a.balance);
+
+  if (entries[0]) {
+    return {
+      user: entries[0].user!,
+      amount: Math.min(-localBalance.value, entries[0].balance),
+    };
+  } else {
+    return null;
+  }
+})
+
+const canSettleUp = computed(() => settling.value != null);
+
+function settleUp() {
+  if (settling.value) {
+    const url = `venmo://paycharge?txn=pay&recipients=${settling.value.user.venmoUsername}&amount=${settling.value.amount / 100}&note=${group.value!.name}`;
+    console.log(url);
+    window.open(url);
+  }
+}
+
+function editLocalUser() {
+  editingPerson.value = localUser.value;
 }
 </script>
 

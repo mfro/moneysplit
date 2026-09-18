@@ -58,6 +58,7 @@ function persist<T extends object>(key: string, initializer: () => T) {
 }
 
 export const localUserName = localStorageRef<string>('mfro:user-name', true);
+export const localVenmoUsername = localStorageRef<string>('mfro:venmo-user-name', true);
 
 export interface AppState {
   version: number,

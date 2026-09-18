@@ -4,6 +4,11 @@
       {{ joining ? 'Enter your name' : 'Member name' }}
     </label>
     <InputText v-model="personName" id="personName"/>
+
+    <label for="venmoUsername">
+      {{ joining ? 'Enter your Venmo Username' : 'Venmo Username' }}
+    </label>
+    <InputText v-model="venmoUsername" id="venmoUsername"/>
   </Flex>
 
   <Flex class="mt-2">
@@ -47,11 +52,13 @@ const emit = defineEmits<{
 const group = computed(() => props.driver.state.group!);
 
 const personName = shallowRef(props.modelValue?.name ?? '')
+const venmoUsername = shallowRef(props.modelValue?.venmoUsername ?? '')
 
 const preview = computed<Person | null>(() => {
   return {
     id: props.modelValue?.id ?? props.driver.state.group!.nextId,
     name: personName.value.trim(),
+    venmoUsername: venmoUsername.value.trim() || null,
   }
 });
 

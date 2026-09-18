@@ -9,6 +9,7 @@ export interface Group {
 export interface Person {
   id: number;
   name: string;
+  venmoUsername: string | null;
 }
 
 export type Transaction =

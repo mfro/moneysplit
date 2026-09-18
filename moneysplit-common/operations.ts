@@ -31,9 +31,10 @@ export const ADD_PERSON = define('ADD_PERSON', (group, person: Omit<Person, 'id'
   assert(canAddPerson(group, person.name), 'invalid add person');
 
   const id = ++group.nextId;
-  const name = person.name.trim()
+  const name = person.name.trim();
+  const venmoUsername = person.venmoUsername?.trim() ?? null;
 
-  group.people.push({ id, name });
+  group.people.push({ id, name, venmoUsername });
 });
 
 export const UPDATE_PERSON = define('UPDATE_PERSON', (group, update: Person) => {
@@ -43,6 +44,7 @@ export const UPDATE_PERSON = define('UPDATE_PERSON', (group, update: Person) => 
   const person = group.people.find(p => p.id === update.id);
   if (person) {
     person.name = update.name.trim();
+    person.venmoUsername = update.venmoUsername?.trim() ?? null;
   }
 });
 
@@ -142,6 +144,7 @@ export function isValidPerson(person: Person, requireId = true): person is Perso
   if (!person || typeof person !== 'object') return false;
   if (requireId && !isInt(person.id)) return false;
   if (!isString(person.name) || person.name.trim().length === 0 || person.name.trim().length >= 1024) return false;
+  if (isString(person.venmoUsername) && (person.venmoUsername.trim().length === 0 || person.venmoUsername.trim().length >= 1024)) return false;
   return true;
 }
 

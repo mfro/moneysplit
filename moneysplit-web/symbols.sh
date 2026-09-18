@@ -21,6 +21,7 @@ add_icon link
 add_icon person_add
 add_icon check
 add_icon copy_all
+add_icon price_check
 add_icon attach_money
 add_icon event
 add_icon photo_camera

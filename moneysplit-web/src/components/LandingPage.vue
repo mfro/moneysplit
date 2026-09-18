@@ -7,6 +7,9 @@
 
       <InputText class="mb-6" v-model="localUserName" id="localUserName"
                  placeholder="Put your name here" />
+
+      <InputText class="mb-6" v-model="localVenmoUsername" id="localVenmoUsername"
+                 placeholder="Put your Venmo username here" />
     </Flex>
 
     <Flex class="px-4 py-2" align-center>
@@ -77,7 +80,7 @@
 import { computed, onMounted, shallowRef } from 'vue';
 import { Button, InputText } from 'primevue';
 import { icon_add, icon_more_horiz, icon_visibility, icon_visibility_off } from '@/assets/symbols';
-import { appState, localUserName, type OfflineGroup } from '@/localStorage';
+import { appState, localUserName, localVenmoUsername, type OfflineGroup } from '@/localStorage';
 import { type Driver, WebSocketDriver } from '@/driver';
 import Icon from '@/ui/Icon.vue';
 import Flex from '@/ui/Flex.vue';
