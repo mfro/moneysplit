@@ -368,7 +368,21 @@ const canSettleUp = computed(() => settling.value != null);
 
 function settleUp() {
   if (settling.value) {
-    const url = `venmo://paycharge?txn=pay&recipients=${settling.value.user.venmoUsername}&amount=${settling.value.amount / 100}&note=${group.value!.name}`;
+    var settle = settling.value;
+
+    var t: Transaction = {
+      id: 0,
+      type: 'exchange',
+      date: new Date(),
+      label: 'Settle up',
+      payer: localUser.value!.id,
+      payee: settle.user.id,
+      value: settle.amount,
+    };
+
+    props.driver.apply(ADD_TRANSACTION, t);
+
+    const url = `venmo://paycharge?txn=pay&recipients=${settle.user.venmoUsername}&amount=${settle.amount / 100}&note=${group.value!.name}`;
     console.log(url);
     window.open(url);
   }
